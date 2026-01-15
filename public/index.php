@@ -8,4 +8,6 @@ require_once "../app/core/Controller.php";
 require_once "../app/core/Model.php";
 require_once "../app/core/Database.php";
 
-$app = new App();
+$db = new Database();
+echo "Database Connected Successfully";
+?>
