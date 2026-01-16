@@ -1,0 +1,221 @@
+/* --- 1. VARIABLES & RESET --- */
+:root {
+    --primary-color: #3498db;    /* Friendly Blue */
+    --primary-dark: #2980b9;
+    --secondary-color: #27ae60;  /* Success Green */
+    --secondary-dark: #219150;
+    --danger-color: #e74c3c;     /* Error Red */
+    --dark-bg: #2c3e50;          /* Navbar Dark */
+    --light-bg: #f4f6f9;         /* Page Background */
+    --white: #ffffff;
+    --gray-text: #555;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --radius: 8px;
+    --transition: all 0.3s ease;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--light-bg);
+    color: #333;
+    margin: 0;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+/* --- 2. TYPOGRAPHY --- */
+h1, h2, h3 {
+    color: var(--dark-bg);
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+h1 { font-size: 2rem; border-bottom: 3px solid var(--primary-color); display: inline-block; padding-bottom: 5px; }
+h2 { font-size: 1.5rem; margin-top: 1.5rem; }
+a { color: var(--primary-color); text-decoration: none; transition: var(--transition); }
+a:hover { color: var(--primary-dark); text-decoration: underline; }
+
+/* --- 3. NAVIGATION BAR --- */
+nav {
+    background: var(--dark-bg);
+    padding: 1rem 1.5rem;
+    margin-bottom: 2rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 15px;
+}
+
+nav a {
+    color: #ecf0f1;
+    text-decoration: none;
+    margin-right: 15px;
+    font-weight: 500;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: var(--transition);
+}
+
+nav a:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--white);
+    text-decoration: none;
+    transform: translateY(-2px);
+}
+
+/* --- 4. BUTTONS --- */
+.btn, button {
+    display: inline-block;
+    padding: 10px 20px;
+    background: var(--secondary-color);
+    color: var(--white);
+    text-decoration: none;
+    border-radius: var(--radius);
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: var(--transition);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn:hover, button:hover {
+    background: var(--secondary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    color: white;
+    text-decoration: none;
+}
+
+/* Specific button variants */
+.btn-danger { background: var(--danger-color); }
+.btn-danger:hover { background: #c0392b; }
+
+/* --- 5. FORMS & INPUTS --- */
+form {
+    background: var(--white);
+    padding: 25px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    max-width: 600px; /* Keeps forms from getting too wide */
+    border: 1px solid #e1e4e8;
+}
+
+input[type="text"], 
+input[type="email"], 
+input[type="password"], 
+textarea, 
+select,
+input[type="file"] {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0 20px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+input:focus, textarea:focus, select:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+label {
+    font-weight: 600;
+    color: var(--dark-bg);
+    margin-bottom: 5px;
+    display: block;
+}
+
+/* --- 6. TABLES --- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--white);
+    border-radius: var(--radius);
+    overflow: hidden; /* Ensures rounded corners work */
+    box-shadow: var(--shadow);
+    margin: 20px 0;
+}
+
+th, td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+th {
+    background-color: var(--primary-color);
+    color: var(--white);
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+tr:hover {
+    background-color: #eaf2f8; /* Light blue highlight on hover */
+}
+
+/* --- 7. NOTIFICATIONS & ALERTS --- */
+/* Helper styles for the PHP success/error messages */
+div[style*="background-color: #f8d7da"], /* Error box */
+div[style*="background: #d4edda"] /* Success box */ 
+{
+    border-radius: var(--radius) !important;
+    padding: 15px !important;
+    margin: 20px 0 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    border: 1px solid transparent;
+}
+
+/* --- 8. RESPONSIVE DESIGN (MOBILE) --- */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    nav {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    nav a {
+        display: block;
+        width: 100%;
+        margin-bottom: 5px;
+        padding: 10px;
+    }
+
+    /* Make tables scroll horizontally on small screens */
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    form {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .btn, button {
+        width: 100%; /* Full width buttons on mobile */
+        text-align: center;
+        margin-bottom: 10px;
+    }
+}
