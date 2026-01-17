@@ -118,7 +118,7 @@ class InstructorController extends Controller {
         if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['material'])) {
             $course_id = $_POST['course_id'];
             
-            // FIX 1: Validate File Type
+            // 1. Validate File Type
             $allowed = ['pdf', 'jpg', 'png', 'doc', 'docx', 'zip'];
             $ext = strtolower(pathinfo($_FILES['material']['name'], PATHINFO_EXTENSION));
             
@@ -126,15 +126,23 @@ class InstructorController extends Controller {
                 die("Error: Only PDF, JPG, PNG, DOC, and ZIP files allowed.");
             }
 
-            // FIX 2: Safer Permissions (0755 instead of 0777)
-            $upload_dir = "../public/uploads/";
-            if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
+            // 2. FIX: Save to 'materials' subfolder so Learner can find it
+            $upload_dir = "../public/uploads/materials/"; 
+            
+            // Create folder if it doesn't exist
+            if (!is_dir($upload_dir)) {
+                mkdir($upload_dir, 0755, true); 
+            }
 
-            // FIX 3: Unique filename to prevent overwriting
+            // 3. Unique filename
             $file_name = uniqid() . '_' . $_FILES['material']['name'];
 
             if (move_uploaded_file($_FILES['material']['tmp_name'], $upload_dir . $file_name)) {
+                
+                // Save to Database
                 $data = ['course_id' => $course_id, 'file_name' => $file_name];
+                
+                // Ensure your Course Model has 'addMaterial' function
                 if ($this->courseModel->addMaterial($data)) {
                     header('Location: ' . BASE_URL . 'instructor/manage/' . $course_id);
                     exit;
