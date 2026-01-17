@@ -91,7 +91,18 @@
         <hr>
 
         <div style="margin-top: 30px; margin-bottom: 50px; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
-            <?php if($data['allFinished']): ?>
+            
+            <?php if($data['is_completed']): ?>
+                <div style="background: #e8f8f5; padding: 20px; border-radius: 5px; color: #27ae60; text-align: center; border: 1px solid #2ecc71;">
+                    <h1 style="font-size: 3rem; margin: 0;">🏆</h1>
+                    <h3 style="margin-top: 10px;">Course Completed!</h3>
+                    <p>Congratulations! You have successfully passed the final quiz.</p>
+                    <p>You have mastered <strong><?= $data['course']['title'] ?></strong>.</p>
+                    
+                    <button class="btn" disabled style="background: #27ae60; cursor: default; opacity: 1;">✅ Certificate Earned</button>
+                </div>
+
+            <?php elseif($data['allFinished']): ?>
                 
                 <?php if($data['has_quiz']): ?>
                     <div style="background: #d4edda; padding: 15px; border-radius: 5px; color: #155724;">

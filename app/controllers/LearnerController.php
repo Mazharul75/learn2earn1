@@ -182,7 +182,7 @@ class LearnerController extends Controller {
     public function progress($course_id) {
         $progressModel = $this->model('Progress');
         $courseModel = $this->model('Course');
-        $quizModel = $this->model('Quiz'); // Load Quiz Model
+        $quizModel = $this->model('Quiz'); 
         
         // 1. Fetch Raw Content
         $rawTasks = $progressModel->getTasksByCourse($course_id, $_SESSION['user_id']);
@@ -194,17 +194,20 @@ class LearnerController extends Controller {
         // 3. CHECK: Does a quiz exist?
         $has_quiz = $quizModel->hasQuiz($course_id);
 
-        // 4. CHECK: Prerequisites (Only if content exists)
+        // 4. CHECK: Prerequisites
         $allFinished = false;
         if (!$is_empty) {
              $allFinished = $progressModel->checkPrerequisites($course_id, $_SESSION['user_id']);
         }
 
-        // 5. Process Tasks (Your existing logic for status colors)
+        // 5. CHECK: Is the course ALREADY COMPLETED?
+        // We use the enrollModel loaded in __construct
+        $is_completed = $this->enrollModel->hasCompleted($_SESSION['user_id'], $course_id);
+
+        // 6. Process Tasks (Your existing logic)
         $processedTasks = [];
         if (!empty($rawTasks)) {
             foreach ($rawTasks as $task) {
-                // ... (Keep your existing task status color logic here) ...
                 if ($task['status'] == 'approved') {
                     $task['status_label'] = '✅ Approved';
                     $task['status_color'] = 'green';
@@ -232,10 +235,9 @@ class LearnerController extends Controller {
             'tasks' => $processedTasks,
             'allFinished' => $allFinished,
             'course_id' => $course_id,
-            
-            // NEW FLAGS FOR VIEW LOGIC
             'is_empty' => $is_empty,
-            'has_quiz' => $has_quiz
+            'has_quiz' => $has_quiz,
+            'is_completed' => $is_completed // <--- NEW FLAG
         ];
 
         $this->view('learner/progress', $data);
