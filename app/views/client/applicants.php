@@ -1,10 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Job Applicants</title>
-    <link rel="stylesheet" type="text/css" href="<?= BASE_URL ?>public/css/style.css">
-</head>
-<body>
+<?php require_once __DIR__ . '/../layouts/header.php'; ?>
 
     <h2>Applicants for: <?= $job['title']; ?></h2>
 
@@ -109,5 +103,4 @@
 
     <a href="<?= BASE_URL ?>client/index">Back to Dashboard</a>
 
-</body>
-</html>
+    <?php require_once __DIR__ . '/../layouts/footer.php'; ?>

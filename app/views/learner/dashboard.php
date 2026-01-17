@@ -1,10 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Learner Dashboard</title>
-    <link rel="stylesheet" type="text/css" href="<?= BASE_URL ?>public/css/style.css">
-</head>
-<body>
+<?php require_once __DIR__ . '/../layouts/header.php'; ?>
     <nav>
         <a href="<?= BASE_URL ?>auth/profile">Manage Profile</a> | 
         <a href="<?= BASE_URL ?>auth/logout">Logout</a>
@@ -78,5 +72,4 @@
         </tr>
         <?php endforeach; ?>
     </table>
-</body>
-</html>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

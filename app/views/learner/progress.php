@@ -1,10 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Learning Progress</title>
-    <link rel="stylesheet" type="text/css" href="<?= BASE_URL ?>public/css/style.css">
-</head>
-<body>
+<?php require_once __DIR__ . '/../layouts/header.php'; ?>
     <h2>Course: <?= $course['title']; ?></h2>
 
     <h3>1. Course Materials</h3>
@@ -81,5 +75,4 @@
      
     <br>
     <a href="<?= BASE_URL ?>dashboard/index">Back to Dashboard</a>
-</body>
-</html>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

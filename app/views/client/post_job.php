@@ -1,10 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Post a Job</title>
-    <link rel="stylesheet" type="text/css" href="<?= BASE_URL ?>public/css/style.css">
-</head>
-<body>
+<?php require_once __DIR__ . '/../layouts/header.php'; ?>
     <h2>Post a Skill-Based Job</h2>
     <form action="<?= BASE_URL ?>client/post" method="POST">
         <input type="text" name="title" placeholder="Job Title" required><br><br>
@@ -38,5 +32,4 @@
     </script>
 
     <form name="jobForm" action="<?= BASE_URL ?>client/post" method="POST" onsubmit="return validateJobForm()"></form>
-</body>
-</html>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

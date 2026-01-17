@@ -1,10 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Client Dashboard</title>
-    <link rel="stylesheet" type="text/css" href="<?= BASE_URL ?>public/css/style.css">
-</head>
-<body>
+<?php require_once __DIR__ . '/../layouts/header.php'; ?>
     <nav>
         <a href="<?= BASE_URL ?>auth/profile">Manage Profile</a> | 
         <a href="<?= BASE_URL ?>auth/logout">Logout</a>
@@ -34,5 +28,4 @@
             <tr><td colspan="2">No jobs posted yet.</td></tr>
         <?php endif; ?>
     </table>
-</body>
-</html>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

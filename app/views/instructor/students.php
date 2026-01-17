@@ -1,10 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Enrolled Students</title>
-    <link rel="stylesheet" type="text/css" href="<?= BASE_URL ?>public/css/style.css">
-</head>
-<body>
+<?php require_once __DIR__ . '/../layouts/header.php'; ?>
     <h2>Students Enrolled in: <?= $course['title']; ?></h2>
     <table border="1">
         <tr>
@@ -31,5 +25,4 @@
         <?php endif; ?>
     </table>
     <a href="<?= BASE_URL ?>instructor/index">Back</a>
-</body>
-</html>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

@@ -1,10 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Select Student</title>
-    <link rel="stylesheet" type="text/css" href="<?= BASE_URL ?>public/css/style.css">
-</head>
-<body>
+<?php require_once __DIR__ . '/../layouts/header.php'; ?>
     <h2>Recommend Student for: <?= $job['title'] ?></h2>
 
     <?php if(empty($students)): ?>
@@ -31,5 +25,4 @@
         <br>
         <a href="<?= BASE_URL ?>instructor/viewJobs">Cancel</a>
     <?php endif; ?>
-</body>
-</html>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

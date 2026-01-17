@@ -1,10 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Account Management</title>
-    <link rel="stylesheet" type="text/css" href="<?= BASE_URL ?>public/css/style.css">
-</head>
-<body>
+<?php require_once __DIR__ . '/../layouts/header.php'; ?>
     <h2>Account Management</h2>
     
     <?php if(isset($data['error'])): ?>
@@ -34,5 +28,5 @@
     </form>
     <br>
     <a href="<?= BASE_URL ?>dashboard/index">Back to Dashboard</a>
-</body>
-</html>
+
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

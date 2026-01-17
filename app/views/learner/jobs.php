@@ -1,10 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Available Jobs</title>
-    <link rel="stylesheet" type="text/css" href="<?= BASE_URL ?>public/css/style.css">
-</head>
-<body>
+<?php require_once __DIR__ . '/../layouts/header.php'; ?>
     <h2>Available Skill-Based Jobs</h2>
     <table border="1">
         <tr>
@@ -28,5 +22,4 @@
     </table>
     <br>
     <a href="<?= BASE_URL ?>dashboard/index">Back to Dashboard</a>
-</body>
-</html>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

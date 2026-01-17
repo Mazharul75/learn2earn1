@@ -1,10 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Quiz Result</title>
-    <link rel="stylesheet" type="text/css" href="<?= BASE_URL ?>public/css/style.css">
-</head>
-<body>
+<?php require_once __DIR__ . '/../layouts/header.php'; ?>
     <div style="text-align: center; margin-top: 50px;">
         <?php if($status == 'passed'): ?>
             <h1 style="color: green;">🎉 Congratulations!</h1>
@@ -21,5 +15,4 @@
             <a href="<?= BASE_URL ?>learner/progress/<?= $course_id ?>">Back to Materials</a>
         <?php endif; ?>
     </div>
-</body>
-</html>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

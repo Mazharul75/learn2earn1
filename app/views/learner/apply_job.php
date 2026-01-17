@@ -1,10 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Apply for Job</title>
-    <link rel="stylesheet" type="text/css" href="<?= BASE_URL ?>public/css/style.css">
-</head>
-<body>
+<?php require_once __DIR__ . '/../layouts/header.php'; ?>
     <h2>Apply for: <?= $job['title'] ?></h2>
     <p>Please upload your CV (PDF only) to complete your application.</p>
     
@@ -18,5 +12,4 @@
     </form>
     <br>
     <a href="<?= BASE_URL ?>learner/jobs">Cancel</a>
-</body>
-</html>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

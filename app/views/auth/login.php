@@ -1,15 +1,5 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Login - Learn2Earn</title>
-    <link rel="stylesheet" type="text/css" href="<?= BASE_URL ?>public/css/style.css">
-    <style>
-        /* Add alert style locally if not in style.css yet */
-        .alert { padding: 12px; margin-bottom: 20px; border-radius: 5px; font-weight: bold; }
-        .alert-danger { background: #fce4e4; color: #c0392b; border: 1px solid #f5c6cb; }
-    </style>
-</head>
-<body>
+<?php require_once __DIR__ . '/../layouts/header.php'; ?>
+
     <h2>Login</h2>
     
     <?php if(isset($error)): ?>
@@ -27,5 +17,5 @@
     </form>
  
     <p>Don't have an account? <a href="<?= BASE_URL ?>auth/register">Register here</a></p>
-</body>
-</html>
+
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

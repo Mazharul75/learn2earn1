@@ -1,10 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Create Course</title>
-    <link rel="stylesheet" type="text/css" href="<?= BASE_URL ?>public/css/style.css">
-</head>
-<body>
+<?php require_once __DIR__ . '/../layouts/header.php'; ?>
     <h2>Add New Course</h2>
     <form action="<?= BASE_URL ?>instructor/create" method="POST">
         <input type="text" name="title" placeholder="Course Title" required><br><br>
@@ -26,5 +20,4 @@
     </form>
     <br>
     <a href="<?= BASE_URL ?>instructor/index">Back to Dashboard</a>
-</body>
-</html>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

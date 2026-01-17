@@ -1,23 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Register</title>
-    <link rel="stylesheet" type="text/css" href="<?= BASE_URL ?>public/css/style.css">
-    <style>
-        .feedback { font-size: 0.9em; margin-top: -15px; margin-bottom: 15px; display: block; height: 1.2em; }
-        .success { color: var(--secondary-color); font-weight: bold; }
-        .error { color: var(--danger-color); font-weight: bold; }
-        
-        #strength-bar { height: 5px; width: 0%; transition: width 0.3s, background 0.3s; border-radius: 3px; margin-top: -15px; margin-bottom: 15px; }
-        .weak { width: 33%; background: #e74c3c; }
-        .medium { width: 66%; background: #f39c12; }
-        .strong { width: 100%; background: #27ae60; }
-        
-        .alert { padding: 10px; margin-bottom: 15px; border-radius: 5px; font-weight: bold; }
-        .alert-danger { background: #fce4e4; color: #c0392b; border: 1px solid #f5c6cb; }
-    </style>
-</head>
-<body>
+<?php require_once __DIR__ . '/../layouts/header.php'; ?>
     <h2>Create Account</h2>
 
     <?php if(isset($error)): ?>
@@ -182,5 +163,4 @@
             }
         });
     </script>
-</body>
-</html>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

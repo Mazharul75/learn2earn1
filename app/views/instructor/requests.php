@@ -1,10 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Seat Requests</title>
-    <link rel="stylesheet" type="text/css" href="<?= BASE_URL ?>public/css/style.css">
-</head>
-<body>
+<?php require_once __DIR__ . '/../layouts/header.php'; ?>
     <nav>
         <a href="<?= BASE_URL ?>instructor/index">Back to Dashboard</a>
     </nav>
@@ -35,5 +29,4 @@
             <tr><td colspan="4">No pending requests.</td></tr>
         <?php endif; ?>
     </table>
-</body>
-</html>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

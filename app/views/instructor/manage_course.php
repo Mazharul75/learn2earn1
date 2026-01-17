@@ -1,10 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Manage Course</title>
-    <link rel="stylesheet" type="text/css" href="<?= BASE_URL ?>public/css/style.css">
-</head>
-<body>
+<?php require_once __DIR__ . '/../layouts/header.php'; ?>
 
     <h2>Manage Course: <?= $course['title']; ?></h2>
 
@@ -137,5 +131,4 @@
         <?php endif; ?>
     </table>
 
-</body>
-</html>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

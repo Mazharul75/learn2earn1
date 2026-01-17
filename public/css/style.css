@@ -23,24 +23,45 @@ body {
     background: var(--light-bg);
     color: #333;
     margin: 0;
-    padding: 20px;
+    padding: 0; /* Changed to 0 so header touches edges */
     line-height: 1.6;
 }
 
-/* --- 2. TYPOGRAPHY --- */
+/* --- 2. LAYOUT CONTAINER --- */
+/* This centers your page content nicely */
+.main-container {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 0 20px;
+    min-height: 70vh; /* Keeps footer at bottom */
+}
+
+/* --- 3. TYPOGRAPHY --- */
 h1, h2, h3 {
     color: var(--dark-bg);
     margin-bottom: 1rem;
     font-weight: 600;
 }
 
-h1 { font-size: 2rem; border-bottom: 3px solid var(--primary-color); display: inline-block; padding-bottom: 5px; }
+h1 { 
+    font-size: 2rem; 
+    border-bottom: 3px solid var(--primary-color); 
+    display: inline-block; 
+    padding-bottom: 5px; 
+}
+
 h2 { font-size: 1.5rem; margin-top: 1.5rem; }
-a { color: var(--primary-color); text-decoration: none; transition: var(--transition); }
+
+a { 
+    color: var(--primary-color); 
+    text-decoration: none; 
+    transition: var(--transition); 
+}
 a:hover { color: var(--primary-dark); text-decoration: underline; }
 
-/* --- 3. NAVIGATION BAR --- */
-nav {
+/* --- 4. NAVIGATION BAR (OLD / GENERAL) --- */
+/* This applies to navs NOT in the header */
+nav:not(.header-nav) {
     background: var(--dark-bg);
     padding: 1rem 1.5rem;
     margin-bottom: 2rem;
@@ -52,7 +73,7 @@ nav {
     gap: 15px;
 }
 
-nav a {
+nav:not(.header-nav) a {
     color: #ecf0f1;
     text-decoration: none;
     margin-right: 15px;
@@ -62,14 +83,13 @@ nav a {
     transition: var(--transition);
 }
 
-nav a:hover {
+nav:not(.header-nav) a:hover {
     background: rgba(255, 255, 255, 0.1);
     color: var(--white);
-    text-decoration: none;
     transform: translateY(-2px);
 }
 
-/* --- 4. BUTTONS --- */
+/* --- 5. BUTTONS --- */
 .btn, button {
     display: inline-block;
     padding: 10px 20px;
@@ -93,17 +113,16 @@ nav a:hover {
     text-decoration: none;
 }
 
-/* Specific button variants */
 .btn-danger { background: var(--danger-color); }
 .btn-danger:hover { background: #c0392b; }
 
-/* --- 5. FORMS & INPUTS --- */
+/* --- 6. FORMS & INPUTS --- */
 form {
     background: var(--white);
-    padding: 25px;
+    padding: 30px;
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    max-width: 600px; /* Keeps forms from getting too wide */
+    max-width: 600px; 
     border: 1px solid #e1e4e8;
 }
 
@@ -138,13 +157,13 @@ label {
     display: block;
 }
 
-/* --- 6. TABLES --- */
+/* --- 7. TABLES --- */
 table {
     width: 100%;
     border-collapse: collapse;
     background: var(--white);
     border-radius: var(--radius);
-    overflow: hidden; /* Ensures rounded corners work */
+    overflow: hidden;
     box-shadow: var(--shadow);
     margin: 20px 0;
 }
@@ -163,59 +182,135 @@ th {
     letter-spacing: 0.5px;
 }
 
-tr:nth-child(even) {
-    background-color: #f8f9fa;
+tr:nth-child(even) { background-color: #f8f9fa; }
+tr:hover { background-color: #eaf2f8; }
+
+/* --- 8. ALERTS --- */
+.alert { padding: 15px; margin-bottom: 20px; border-radius: 5px; font-weight: bold; border: 1px solid transparent; }
+.alert-danger { background: #fce4e4; color: #c0392b; border-color: #f5c6cb; }
+.alert-success { background: #d4edda; color: #155724; border-color: #c3e6cb; }
+
+/* --- 9. PROFESSIONAL HEADER STYLES --- */
+
+.main-header {
+    background: #2c3e50;
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: white;
+    padding: 1rem 2rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 3px solid var(--secondary-color);
 }
 
-tr:hover {
-    background-color: #eaf2f8; /* Light blue highlight on hover */
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
-/* --- 7. NOTIFICATIONS & ALERTS --- */
-/* Helper styles for the PHP success/error messages */
-div[style*="background-color: #f8d7da"], /* Error box */
-div[style*="background: #d4edda"] /* Success box */ 
-{
-    border-radius: var(--radius) !important;
-    padding: 15px !important;
-    margin: 20px 0 !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    border: 1px solid transparent;
+.brand-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
-/* --- 8. RESPONSIVE DESIGN (MOBILE) --- */
+.logo {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: white;
+    text-decoration: none;
+    letter-spacing: -1px;
+}
+
+.highlight { color: var(--secondary-color); }
+
+.divider {
+    font-size: 1.5rem;
+    color: rgba(255,255,255,0.3);
+    font-weight: 300;
+}
+
+.motto {
+    font-size: 0.95rem;
+    font-style: italic;
+    color: rgba(255,255,255,0.8);
+    letter-spacing: 0.5px;
+}
+
+.user-section {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.user-details {
+    text-align: right;
+    line-height: 1.2;
+}
+
+.user-name {
+    display: block;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* Role Badges */
+.role-badge {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+.badge-learner { background: #3498db; color: white; }
+.badge-instructor { background: #e67e22; color: white; }
+.badge-client { background: #9b59b6; color: white; }
+
+/* Header Navigation */
+.header-nav {
+    display: flex;
+    gap: 10px;
+}
+
+.header-nav a {
+    color: rgba(255,255,255,0.9);
+    font-size: 0.9rem;
+    padding: 8px 15px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    background: rgba(255,255,255,0.1);
+    text-decoration: none;
+}
+
+.header-nav a:hover {
+    background: white;
+    color: #2c3e50;
+    transform: translateY(-2px);
+}
+
+.btn-logout { background: var(--danger-color) !important; }
+.btn-login { background: var(--secondary-color) !important; padding: 8px 20px; color: white; border-radius: 4px; text-decoration: none; }
+
+/* Footer */
+.main-footer {
+    text-align: center;
+    margin-top: 50px;
+    padding: 30px;
+    background: white;
+    border-top: 1px solid #eee;
+    color: #7f8c8d;
+}
+
+/* --- 10. RESPONSIVE --- */
 @media (max-width: 768px) {
-    body {
-        padding: 10px;
-    }
-
-    nav {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    nav a {
-        display: block;
-        width: 100%;
-        margin-bottom: 5px;
-        padding: 10px;
-    }
-
-    /* Make tables scroll horizontally on small screens */
-    table {
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
-    }
-
-    form {
-        width: 100%;
-        max-width: 100%;
-    }
-
-    .btn, button {
-        width: 100%; /* Full width buttons on mobile */
-        text-align: center;
-        margin-bottom: 10px;
-    }
+    .header-content { flex-direction: column; gap: 15px; }
+    .brand-section { flex-direction: column; gap: 5px; }
+    .divider { display: none; }
+    .user-section { width: 100%; justify-content: center; flex-direction: column; }
+    .header-nav { flex-wrap: wrap; justify-content: center; }
 }

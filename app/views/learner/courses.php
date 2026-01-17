@@ -1,10 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Search Courses</title>
-    <link rel="stylesheet" type="text/css" href="<?= BASE_URL ?>public/css/style.css">
-</head>
-<body>
+<?php require_once __DIR__ . '/../layouts/header.php'; ?>
     <h2>Search and Enroll</h2>
     
     <input type="text" id="courseSearch" placeholder="Search by title..." onkeyup="searchCourses()">
@@ -178,5 +172,4 @@
 
 
     </script>
-</body>
-</html>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

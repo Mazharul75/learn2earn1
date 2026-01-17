@@ -1,4 +1,4 @@
-<?php require_once '../app/views/layouts/header.php'; ?>
+<?php require_once __DIR__ . '/../layouts/header.php'; ?>
 <h2>Final Assessment</h2>
 <form action="<?= BASE_URL ?>learner/submitQuiz/<?= $course_id ?>" method="POST">
     <?php foreach($questions as $index => $q): ?>
@@ -10,3 +10,4 @@
     <?php endforeach; ?>
     <br><button type="submit" class="btn">Submit Results</button>
 </form>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>
