@@ -27,6 +27,9 @@
             <option value="client">Client</option>
         </select>
         
+
+
+        
         <br>
         <button type="submit" id="submitBtn">Register</button>
     </form>
