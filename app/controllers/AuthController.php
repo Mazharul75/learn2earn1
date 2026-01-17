@@ -93,27 +93,40 @@ class AuthController extends Controller {
 
 
     public function apiCheckEmail() {
-        // Only accept POST requests for security
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            // Get raw JSON input (standard for modern AJAX)
             $json = file_get_contents('php://input');
             $data = json_decode($json, true);
-            
             $email = trim($data['email'] ?? '');
             
-            // Logic
+            // 1. Load Admin Model to check invites
+            $adminModel = $this->model('Admin');
+
             if (empty($email)) {
                 echo json_encode(['status' => 'error', 'message' => 'Email cannot be empty']);
             } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 echo json_encode(['status' => 'invalid', 'message' => 'Invalid email format']);
             } elseif ($this->userModel->findUserByEmail($email)) {
                 echo json_encode(['status' => 'taken', 'message' => '❌ Email is already registered']);
-            } else {
-                echo json_encode(['status' => 'available', 'message' => '✅ Email is available']);
+            } 
+            // 2. NEW CHECK: Is this an Admin Invite?
+            elseif ($adminModel->isInvited($email)) {
+                echo json_encode([
+                    'status' => 'available', 
+                    'message' => '✅ Email available',
+                    'is_admin_invite' => true // <--- Signal to Frontend
+                ]);
+            } 
+            else {
+                echo json_encode([
+                    'status' => 'available', 
+                    'message' => '✅ Email available',
+                    'is_admin_invite' => false
+                ]);
             }
-            exit; // Stop script so only JSON is returned
+            exit;
         }
     }
+
 
     public function profile() {
         $user = $this->userModel->getUserById($_SESSION['user_id']);
