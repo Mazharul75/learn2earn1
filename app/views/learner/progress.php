@@ -75,18 +75,40 @@
         <hr>
 
         <h3>Materials Checklist</h3>
-        <ul>
+        <ul style="list-style: none; padding: 0;">
             <?php if(!empty($data['materials'])): ?>
                 <?php foreach($data['materials'] as $m): ?>
-                <li style="margin-bottom: 10px;">
-                    <?= $m['file_name']; ?> 
-                    <a href="<?= BASE_URL ?>learner/checkout/<?= $m['id']; ?>" class="btn" style="padding: 2px 8px; font-size: 0.8rem;">Checkout</a>
+                
+                <?php 
+                    // Check if this material ID is in the "checked_ids" list we fetched
+                    $is_checked = in_array($m['id'], $data['checked_ids']); 
+                ?>
+
+                <li style="margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; border-radius: 5px;">
+                    <span>📄 <?= $m['file_name']; ?></span>
+
+                    <?php if($is_checked): ?>
+                        
+                        <button class="btn" disabled style="background: #27ae60; color: white; cursor: default; border: none; padding: 5px 15px; border-radius: 4px;">
+                            ✅ Checked
+                        </button>
+                    
+                    <?php else: ?>
+                        
+                        <a href="<?= BASE_URL ?>learner/checkout/<?= $m['id']; ?>" style="text-decoration: none;">
+                            <div style="background: #ecf0f1; color: #7f8c8d; padding: 5px 15px; border-radius: 4px; border: 1px solid #bdc3c7;">
+                                ⬜️ Mark as Done
+                            </div>
+                        </a>
+
+                    <?php endif; ?>
                 </li>
                 <?php endforeach; ?>
             <?php else: ?>
                 <li>No items to check out.</li>
             <?php endif; ?>
         </ul>
+
         
         <hr>
 

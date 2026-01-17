@@ -179,7 +179,7 @@ class LearnerController extends Controller {
         }
     }
 
-    public function progress($course_id) {
+        public function progress($course_id) {
         $progressModel = $this->model('Progress');
         $courseModel = $this->model('Course');
         $quizModel = $this->model('Quiz'); 
@@ -188,6 +188,10 @@ class LearnerController extends Controller {
         $rawTasks = $progressModel->getTasksByCourse($course_id, $_SESSION['user_id']);
         $materials = $courseModel->getMaterials($course_id);
         
+        // --- NEW LINE: Get list of checked IDs ---
+        $checkedIDs = $progressModel->getCheckedMaterials($_SESSION['user_id'], $course_id);
+        // -----------------------------------------
+
         // 2. CHECK: Is the course empty?
         $is_empty = (empty($rawTasks) && empty($materials));
 
@@ -201,10 +205,9 @@ class LearnerController extends Controller {
         }
 
         // 5. CHECK: Is the course ALREADY COMPLETED?
-        // We use the enrollModel loaded in __construct
         $is_completed = $this->enrollModel->hasCompleted($_SESSION['user_id'], $course_id);
 
-        // 6. Process Tasks (Your existing logic)
+        // 6. Process Tasks
         $processedTasks = [];
         if (!empty($rawTasks)) {
             foreach ($rawTasks as $task) {
@@ -237,11 +240,13 @@ class LearnerController extends Controller {
             'course_id' => $course_id,
             'is_empty' => $is_empty,
             'has_quiz' => $has_quiz,
-            'is_completed' => $is_completed // <--- NEW FLAG
+            'is_completed' => $is_completed,
+            'checked_ids' => $checkedIDs // <--- PASSING THIS TO VIEW
         ];
 
         $this->view('learner/progress', $data);
     }
+
 
     public function submitTask() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['task_file'])) {

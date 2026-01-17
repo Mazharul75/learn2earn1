@@ -11,13 +11,28 @@ class Progress extends Model {
         return $this->db->resultSet();
     }
 
+    // --- NEW FUNCTION: Get list of IDs for Green Checkboxes ---
+    public function getCheckedMaterials($learner_id, $course_id) {
+        // We select materials that match this user AND belong to this course
+        $this->db->query("SELECT material_id FROM material_completion 
+                          WHERE learner_id = :lid 
+                          AND material_id IN (SELECT id FROM materials WHERE course_id = :cid)");
+        $this->db->bind(':lid', $learner_id);
+        $this->db->bind(':cid', $course_id);
+        
+        $rows = $this->db->resultSet();
+        // Returns a simple list like [1, 5, 8]
+        return array_column($rows, 'material_id'); 
+    }
+
     public function checkPrerequisites($course_id, $learner_id) {
         // 1. Check Materials (Must be viewed)
         $this->db->query("SELECT COUNT(*) as total FROM materials WHERE course_id = :cid");
         $this->db->bind(':cid', $course_id);
         $matTotal = $this->db->single()['total'];
 
-        $this->db->query("SELECT COUNT(*) as completed FROM material_completion 
+        // FIX: Use DISTINCT to ignore duplicate clicks
+        $this->db->query("SELECT COUNT(DISTINCT material_id) as completed FROM material_completion 
                           WHERE learner_id = :lid AND material_id IN (SELECT id FROM materials WHERE course_id = :cid)");
         $this->db->bind(':lid', $learner_id);
         $this->db->bind(':cid', $course_id);
@@ -36,11 +51,31 @@ class Progress extends Model {
         $this->db->bind(':cid', $course_id);
         $taskApproved = $this->db->single()['approved'];
 
-        $materialsOK = ($matTotal == 0) || ($matTotal == $matDone);
-        $tasksOK     = ($taskTotal == 0) || ($taskTotal == $taskApproved);
+        // Logic: Total must match Done
+        $materialsOK = ($matTotal == 0) || ($matDone >= $matTotal); // Changed to >= just to be safe
+        $tasksOK     = ($taskTotal == 0) || ($taskApproved >= $taskTotal);
 
         return $materialsOK && $tasksOK;
     }
+
+    public function checkoutMaterial($learner_id, $material_id) {
+        // FIX: Check if already exists to prevent duplicates
+        $this->db->query("SELECT id FROM material_completion WHERE learner_id = :lid AND material_id = :mid");
+        $this->db->bind(':lid', $learner_id);
+        $this->db->bind(':mid', $material_id);
+        
+        if($this->db->single()) {
+            return true; // Already checked, do nothing
+        }
+
+        // Insert only if new
+        $this->db->query("INSERT INTO material_completion (learner_id, material_id) VALUES (:lid, :mid)");
+        $this->db->bind(':lid', $learner_id);
+        $this->db->bind(':mid', $material_id);
+        return $this->db->execute();
+    }
+
+
 
     public function submitTask($learner_id, $task_id, $filename) {
         // Check if exists (Resubmission logic)
@@ -81,24 +116,15 @@ class Progress extends Model {
         return $this->db->execute();
     }
 
-
-
-    public function checkoutMaterial($learner_id, $material_id) {
-        $this->db->query("INSERT INTO material_completion (learner_id, material_id) VALUES (:lid, :mid)");
-        $this->db->bind(':lid', $learner_id);
-        $this->db->bind(':mid', $material_id);
-        return $this->db->execute();
-    }
+    
 
     public function markCourseComplete($learner_id, $course_id) {
-        // Update the new 'status' column we added to the enrollments table
         $this->db->query("UPDATE enrollments SET status = 'completed' WHERE learner_id = :lid AND course_id = :cid");
         $this->db->bind(':lid', $learner_id);
         $this->db->bind(':cid', $course_id);
         return $this->db->execute();
     }
 
-    // Insert into the completion table instead of updating the task table
     public function markTaskDone($task_id, $learner_id) {
         $this->db->query("INSERT INTO task_completion (learner_id, task_id) VALUES (:lid, :tid)");
         $this->db->bind(':lid', $learner_id);
@@ -107,15 +133,15 @@ class Progress extends Model {
     }
 
     public function isCourseCompleted($course_id, $learner_id) {
-        $this->db->query("SELECT progress FROM enrollments 
+        $this->db->query("SELECT status FROM enrollments 
                           WHERE learner_id = :lid AND course_id = :cid");
         $this->db->bind(':lid', $learner_id);
         $this->db->bind(':cid', $course_id);
         
         $row = $this->db->single();
 
-        // If progress is 100 (set by passing the quiz), the course is officially done.
-        if ($row && $row['progress'] == 100) {
+        // Check if status is explicitly 'completed'
+        if ($row && $row['status'] == 'completed') {
             return true;
         }
         return false;
