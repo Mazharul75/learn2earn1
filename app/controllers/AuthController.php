@@ -31,22 +31,74 @@ class AuthController extends Controller {
 
     public function register() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            
+            $name = trim($_POST['name']);
+            $email = trim($_POST['email']);
+            $password = trim($_POST['password']);
+            $role = $_POST['role'];
+
+            // 1. PHP VALIDATION: Check for Empty Fields
+            if (empty($name) || empty($email) || empty($password)) {
+                $this->view('auth/register', ['error' => 'Please fill in all fields.']);
+                return;
+            }
+
+            // 2. PHP VALIDATION: Email Format
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $this->view('auth/register', ['error' => 'Invalid email format.']);
+                return;
+            }
+
+            // 3. PHP VALIDATION: Duplicate Check
+            if ($this->userModel->findUserByEmail($email)) {
+                $this->view('auth/register', ['error' => 'User with this email already exists.']);
+                return;
+            }
+
+            // 4. PHP VALIDATION: Password Strength
+            if (strlen($password) < 6) {
+                $this->view('auth/register', ['error' => 'Password must be at least 6 characters.']);
+                return;
+            }
+
             $data = [
-                'name' => trim($_POST['name']),
-                'email' => trim($_POST['email']),
-                'password' => password_hash(trim($_POST['password']), PASSWORD_DEFAULT),
-                'role' => $_POST['role']
+                'name' => $name,
+                'email' => $email,
+                'password' => password_hash($password, PASSWORD_DEFAULT),
+                'role' => $role
             ];
 
             if ($this->userModel->register($data)) {
-                header('Location: ' . BASE_URL . '/auth/login');
+                header('Location: ' . BASE_URL . 'auth/login');
                 exit;
             } else {
-                die("Registration failed.");
+                $this->view('auth/register', ['error' => 'Registration failed.']);
             }
         } else {
-            // ONLY load the view if it is NOT a post request
             $this->view('auth/register');
+        }
+    }
+
+    public function apiCheckEmail() {
+        // Only accept POST requests for security
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Get raw JSON input (standard for modern AJAX)
+            $json = file_get_contents('php://input');
+            $data = json_decode($json, true);
+            
+            $email = trim($data['email'] ?? '');
+            
+            // Logic
+            if (empty($email)) {
+                echo json_encode(['status' => 'error', 'message' => 'Email cannot be empty']);
+            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                echo json_encode(['status' => 'invalid', 'message' => 'Invalid email format']);
+            } elseif ($this->userModel->findUserByEmail($email)) {
+                echo json_encode(['status' => 'taken', 'message' => '❌ Email is already registered']);
+            } else {
+                echo json_encode(['status' => 'available', 'message' => '✅ Email is available']);
+            }
+            exit; // Stop script so only JSON is returned
         }
     }
 

@@ -50,4 +50,14 @@ class User extends Model {
             return false; 
         }
     }
+
+    // New function for AJAX Availability Check
+    public function findUserByEmail($email) {
+        $this->db->query("SELECT id FROM users WHERE email = :email");
+        $this->db->bind(':email', $email);
+        $row = $this->db->single();
+
+        // Returns true if email exists, false otherwise
+        return ($this->db->rowCount() > 0);
+    }
 }
