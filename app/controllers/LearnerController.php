@@ -182,42 +182,60 @@ class LearnerController extends Controller {
     public function progress($course_id) {
         $progressModel = $this->model('Progress');
         $courseModel = $this->model('Course');
+        $quizModel = $this->model('Quiz'); // Load Quiz Model
         
-        // 1. Fetch Raw Data
+        // 1. Fetch Raw Content
         $rawTasks = $progressModel->getTasksByCourse($course_id, $_SESSION['user_id']);
+        $materials = $courseModel->getMaterials($course_id);
         
-        // 2. STRICT MVC: Prepare "View Data" (Logic happens here, not in HTML)
-        $processedTasks = [];
-        foreach ($rawTasks as $task) {
-            // Determine Status Label and Color
-            if ($task['status'] == 'approved') {
-                $task['status_label'] = '✅ Approved';
-                $task['status_color'] = 'green';
-                $task['is_uploadable'] = false; // Hide button
-            } elseif ($task['status'] == 'rejected') {
-                $task['status_label'] = '❌ Rejected (Please Resubmit)';
-                $task['status_color'] = 'red';
-                $task['is_uploadable'] = true; // Show button
-            } elseif ($task['status'] == 'pending') {
-                $task['status_label'] = '⏳ Under Review';
-                $task['status_color'] = 'orange';
-                $task['is_uploadable'] = false; // Hide button
-            } else {
-                $task['status_label'] = 'Not Submitted';
-                $task['status_color'] = 'gray';
-                $task['is_uploadable'] = true; // Show button
-            }
-            
-            $processedTasks[] = $task;
+        // 2. CHECK: Is the course empty?
+        $is_empty = (empty($rawTasks) && empty($materials));
+
+        // 3. CHECK: Does a quiz exist?
+        $has_quiz = $quizModel->hasQuiz($course_id);
+
+        // 4. CHECK: Prerequisites (Only if content exists)
+        $allFinished = false;
+        if (!$is_empty) {
+             $allFinished = $progressModel->checkPrerequisites($course_id, $_SESSION['user_id']);
         }
 
-        // 3. Prepare other data
+        // 5. Process Tasks (Your existing logic for status colors)
+        $processedTasks = [];
+        if (!empty($rawTasks)) {
+            foreach ($rawTasks as $task) {
+                // ... (Keep your existing task status color logic here) ...
+                if ($task['status'] == 'approved') {
+                    $task['status_label'] = '✅ Approved';
+                    $task['status_color'] = 'green';
+                    $task['is_uploadable'] = false;
+                } elseif ($task['status'] == 'rejected') {
+                    $task['status_label'] = '❌ Rejected (Please Resubmit)';
+                    $task['status_color'] = 'red';
+                    $task['is_uploadable'] = true;
+                } elseif ($task['status'] == 'pending') {
+                    $task['status_label'] = '⏳ Under Review';
+                    $task['status_color'] = 'orange';
+                    $task['is_uploadable'] = false;
+                } else {
+                    $task['status_label'] = 'Not Submitted';
+                    $task['status_color'] = 'gray';
+                    $task['is_uploadable'] = true;
+                }
+                $processedTasks[] = $task;
+            }
+        }
+
         $data = [
             'course' => $courseModel->getCourseById($course_id),
-            'materials' => $courseModel->getMaterials($course_id),
-            'tasks' => $processedTasks, // Send the processed tasks
-            'allFinished' => $progressModel->checkPrerequisites($course_id, $_SESSION['user_id']),
-            'course_id' => $course_id
+            'materials' => $materials,
+            'tasks' => $processedTasks,
+            'allFinished' => $allFinished,
+            'course_id' => $course_id,
+            
+            // NEW FLAGS FOR VIEW LOGIC
+            'is_empty' => $is_empty,
+            'has_quiz' => $has_quiz
         ];
 
         $this->view('learner/progress', $data);
@@ -351,6 +369,16 @@ class LearnerController extends Controller {
 
     public function takeQuiz($course_id) {
         $quizModel = $this->model('Quiz');
+        
+        // SECURITY: Check if quiz exists
+        if (!$quizModel->hasQuiz($course_id)) {
+            echo "<script>
+                alert('⚠️ This course does not have a quiz yet. Please contact the instructor.'); 
+                window.history.back();
+            </script>";
+            exit;
+        }
+
         $questions = $quizModel->getQuizQuestions($course_id);
         $this->view('learner/take_quiz', ['questions' => $questions, 'course_id' => $course_id]);
     }

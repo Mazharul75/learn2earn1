@@ -28,7 +28,10 @@ class Quiz extends Model {
     }
 
     public function getQuizQuestions($course_id) {
-        $this->db->query("SELECT * FROM questions WHERE quiz_id = (SELECT id FROM quizzes WHERE course_id = :cid)");
+        // This joins Quizzes and Questions to find questions for a specific course
+        $this->db->query("SELECT q.* FROM questions q 
+                          JOIN quizzes z ON q.quiz_id = z.id 
+                          WHERE z.course_id = :cid");
         $this->db->bind(':cid', $course_id);
         return $this->db->resultSet();
     }
@@ -63,5 +66,13 @@ class Quiz extends Model {
             'score' => $score,
             'total' => $total
         ];
+    }
+
+    public function hasQuiz($course_id) {
+        // FIX: Check the 'quizzes' table, because 'questions' does not have course_id
+        $this->db->query("SELECT id FROM quizzes WHERE course_id = :cid LIMIT 1");
+        $this->db->bind(':cid', $course_id);
+        $this->db->execute();
+        return ($this->db->rowCount() > 0);
     }
 }
