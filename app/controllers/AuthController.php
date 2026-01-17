@@ -18,9 +18,14 @@ class AuthController extends Controller {
                 $_SESSION['user_name'] = $user['name'];
                 $_SESSION['user_role'] = $user['role']; 
                 
-                header('Location: ' . BASE_URL . 'dashboard/index');
+                // Redirect based on role
+                if ($user['role'] == 'admin') {
+                    header('Location: ' . BASE_URL . 'admin/dashboard');
+                } else {
+                    header('Location: ' . BASE_URL . 'dashboard/index');
+                }
                 exit;
-            } else {
+            }else {
                 $this->view('auth/login', ['error' => '❌ Invalid Email or Password']);
             }
         } else {
@@ -60,6 +65,14 @@ class AuthController extends Controller {
                 return;
             }
 
+             // --- NEW: MAGIC ADMIN CHECK ---
+            // Check if this email was invited by an Admin
+            $adminModel = $this->model('Admin');
+            if ($adminModel->isInvited($email)) {
+                $role = 'admin'; // ⚡️ FORCE OVERRIDE: They become Admin automatically
+            }
+
+
             $data = [
                 'name' => $name,
                 'email' => $email,
@@ -77,6 +90,7 @@ class AuthController extends Controller {
             $this->view('auth/register');
         }
     }
+
 
     public function apiCheckEmail() {
         // Only accept POST requests for security
