@@ -80,23 +80,52 @@
                 <?php foreach($data['materials'] as $m): ?>
                 
                 <?php 
-                    // Check if this material ID is in the "checked_ids" list we fetched
                     $is_checked = in_array($m['id'], $data['checked_ids']); 
                 ?>
 
-                <li style="margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; border-radius: 5px;">
-                    <span>📄 <?= $m['file_name']; ?></span>
+                <li style="
+                    margin-bottom: 12px; 
+                    padding: 12px 15px; 
+                    background: #fff;
+                    border: 1px solid <?= $is_checked ? '#c3e6cb' : '#ddd' ?>; 
+                    border-left: 5px solid <?= $is_checked ? '#28a745' : '#ccc' ?>;
+                    display: flex; 
+                    justify-content: space-between; 
+                    align-items: center; 
+                    border-radius: 4px;
+                    transition: all 0.3s ease;
+                ">
+                    <span style="font-weight: 500; color: <?= $is_checked ? '#155724' : '#555' ?>;">
+                        <?= $is_checked ? '📄' : '📄' ?> <?= $m['file_name']; ?>
+                    </span>
 
                     <?php if($is_checked): ?>
                         
-                        <button class="btn" disabled style="background: #27ae60; color: white; cursor: default; border: none; padding: 5px 15px; border-radius: 4px;">
-                            ✅ Checked
-                        </button>
+                        <div style="
+                            background-color: #d4edda; 
+                            color: #155724; 
+                            padding: 5px 12px; 
+                            border-radius: 20px; 
+                            font-size: 0.85rem; 
+                            font-weight: 600; 
+                            display: flex; 
+                            align-items: center; 
+                            gap: 6px;">
+                            <span>✔️</span> Completed
+                        </div>
                     
                     <?php else: ?>
                         
-                        <a href="<?= BASE_URL ?>learner/checkout/<?= $m['id']; ?>" style="text-decoration: none;">
-                            <div style="background: #ecf0f1; color: #7f8c8d; padding: 5px 15px; border-radius: 4px; border: 1px solid #bdc3c7;">
+                        <a href="<?= BASE_URL ?>learner/checkout/<?= $data['course_id'] ?>/<?= $m['id']; ?>" style="text-decoration: none;">
+                            <div style="
+                                background: #f8f9fa; 
+                                color: #6c757d; 
+                                padding: 5px 15px; 
+                                border-radius: 20px; 
+                                border: 1px solid #ced4da; 
+                                font-size: 0.85rem;
+                                font-weight: 600;
+                                transition: 0.2s;">
                                 ⬜️ Mark as Done
                             </div>
                         </a>
@@ -105,7 +134,7 @@
                 </li>
                 <?php endforeach; ?>
             <?php else: ?>
-                <li>No items to check out.</li>
+                <li style="color: #777; font-style: italic;">No materials to review.</li>
             <?php endif; ?>
         </ul>
 
