@@ -91,7 +91,8 @@ class Progress extends Model {
     }
 
     public function markCourseComplete($learner_id, $course_id) {
-        $this->db->query("UPDATE enrollments SET progress = 100 WHERE learner_id = :lid AND course_id = :cid");
+        // Update the new 'status' column we added to the enrollments table
+        $this->db->query("UPDATE enrollments SET status = 'completed' WHERE learner_id = :lid AND course_id = :cid");
         $this->db->bind(':lid', $learner_id);
         $this->db->bind(':cid', $course_id);
         return $this->db->execute();

@@ -1,17 +1,25 @@
 <?php
 class Course extends Model {
     
-        // Updated addCourse to include capacity limits
     public function addCourse($data) {
-        $this->db->query("INSERT INTO courses (instructor_id, title, description, difficulty, max_capacity, reserved_seats) 
-                          VALUES (:uid, :t, :d, :diff, :max, :res)");
+        $this->db->query("INSERT INTO courses (instructor_id, title, description, difficulty, max_capacity, reserved_seats, prerequisite_id) 
+                          VALUES (:uid, :t, :d, :diff, :max, :res, :pre)");
         $this->db->bind(':uid', $_SESSION['user_id']);
         $this->db->bind(':t', $data['title']);
         $this->db->bind(':d', $data['description']);
         $this->db->bind(':diff', $data['difficulty']);
         $this->db->bind(':max', $data['max_capacity']);
         $this->db->bind(':res', $data['reserved_seats']);
+        // Handle NULL for beginner courses
+        $this->db->bind(':pre', !empty($data['prerequisite_id']) ? $data['prerequisite_id'] : null);
+        
         return $this->db->execute();
+    }
+
+    // Helper to fetch simple list for dropdown (id and title only)
+    public function getCourseList() {
+        $this->db->query("SELECT id, title FROM courses ORDER BY title ASC");
+        return $this->db->resultSet();
     }
 
         // Updated: Fetch courses + Count of enrolled students

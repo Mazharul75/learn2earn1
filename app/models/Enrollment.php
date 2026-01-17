@@ -32,4 +32,22 @@ class Enrollment extends Model {
         return $row['count'];
     }
 
+    // Check if a learner has COMPLETED a specific course
+    public function hasCompleted($learner_id, $course_id) {
+        $this->db->query("SELECT status FROM enrollments WHERE learner_id = :lid AND course_id = :cid");
+        $this->db->bind(':lid', $learner_id);
+        $this->db->bind(':cid', $course_id);
+        $row = $this->db->single();
+        
+        // Return TRUE only if status is 'completed'
+        return ($row && $row['status'] == 'completed');
+    }
+
+    public function markAsCompleted($learner_id, $course_id) {
+        $this->db->query("UPDATE enrollments SET status = 'completed' WHERE learner_id = :lid AND course_id = :cid");
+        $this->db->bind(':lid', $learner_id);
+        $this->db->bind(':cid', $course_id);
+        return $this->db->execute();
+    }
+
 }

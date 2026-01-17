@@ -48,6 +48,24 @@ class LearnerController extends Controller {
             exit;
         }
 
+        // 2. PREREQUISITE CHECK (The New Logic)
+        $course = $this->courseModel->getCourseById($course_id);
+        
+        if (!empty($course['prerequisite_id'])) {
+            // Check if Learner has COMPLETED the prerequisite
+            if (!$this->enrollModel->hasCompleted($learner_id, $course['prerequisite_id'])) {
+                // Get name of needed course for the error message
+                $needed = $this->courseModel->getCourseById($course['prerequisite_id']);
+                $neededTitle = $needed['title'];
+
+                echo "<script>
+                    alert('⛔ PREREQUISITE MISSING!\\n\\nYou cannot enroll in this ' + '{$course['difficulty']}' + ' course yet.\\nYou must first complete: $neededTitle'); 
+                    window.location.href='" . BASE_URL . "learner/courses';
+                </script>";
+                exit;
+            }
+        }
+
         // 2. Check if already REQUESTED (Pending)
         $requestModel = $this->model('CourseRequest'); // Create this model in Step 3
         if ($requestModel->hasPendingRequest($learner_id, $course_id)) {
@@ -81,6 +99,7 @@ class LearnerController extends Controller {
             header('Location: ' . BASE_URL . 'dashboard/index');
             exit;
         }
+
     }
 
     // Helper to handle the request logic

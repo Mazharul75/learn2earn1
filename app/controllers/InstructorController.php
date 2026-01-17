@@ -35,12 +35,18 @@ class InstructorController extends Controller {
                 'description' => trim($_POST['description']),
                 'difficulty' => $_POST['difficulty'],
                 'max_capacity' => (int)$_POST['max_capacity'],
-                'reserved_seats' => (int)$_POST['reserved_seats']
+                'reserved_seats' => (int)$_POST['reserved_seats'],
+                'prerequisite_id' => $_POST['prerequisite_id']
             ];
 
-            // Validation: Reserved cannot be greater than Max
-            if ($data['reserved_seats'] >= $data['max_capacity']) {
-                die("Error: Reserved seats cannot exceed or equal Maximum capacity.");
+            // LOGIC: If Intermediate/Advanced, Prerequisite is MANDATORY
+            if ($data['difficulty'] != 'Beginner' && empty($data['prerequisite_id'])) {
+                $courses = $this->courseModel->getCourseList(); // Re-fetch for view
+                $this->view('instructor/create_course', [
+                    'courses' => $courses, 
+                    'error' => '⚠️ Intermediate and Advanced courses MUST have a Prerequisite course selected.'
+                ]);
+                return;
             }
 
             if ($this->courseModel->addCourse($data)) {
@@ -50,7 +56,9 @@ class InstructorController extends Controller {
                 die("Something went wrong.");
             }
         } else {
-            $this->view('instructor/create_course');
+            // GET Request: Load the form with existing courses
+            $courses = $this->courseModel->getCourseList();
+            $this->view('instructor/create_course', ['courses' => $courses]);
         }
     }
 
