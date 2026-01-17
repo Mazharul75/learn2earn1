@@ -10,19 +10,18 @@ class AuthController extends Controller {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $email = trim($_POST['email']);
             $password = trim($_POST['password']);
+            
             $user = $this->userModel->login($email, $password);
 
             if ($user) {
-                // We must use these exact keys 
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['user_name'] = $user['name'];
                 $_SESSION['user_role'] = $user['role']; 
                 
-                // Redirect to the dashboard method [cite: 1241]
                 header('Location: ' . BASE_URL . 'dashboard/index');
                 exit;
             } else {
-                echo "Invalid Email/Password";
+                $this->view('auth/login', ['error' => '❌ Invalid Email or Password']);
             }
         } else {
             $this->view('auth/login');
