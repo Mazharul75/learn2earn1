@@ -366,13 +366,22 @@ class LearnerController extends Controller {
         ]);
     }
 
-    public function checkout($material_id) {
+        // FIX: Match the arguments exactly with the Model
+    public function checkout($course_id, $material_id) {
         $progressModel = $this->model('Progress');
+        
+        // ERROR WAS HERE: We were passing $course_id as the second argument, 
+        // but the Model expects 'material_id' as the second argument.
+        
+        // Correct Call: (Learner ID, Material ID)
         if ($progressModel->checkoutMaterial($_SESSION['user_id'], $material_id)) {
-            header('Location: ' . $_SERVER['HTTP_REFERER']);
+            
+            // Redirect back to the course progress page
+            header('Location: ' . BASE_URL . 'learner/progress/' . $course_id);
             exit;
         }
     }
+
 
     public function takeQuiz($course_id) {
         $quizModel = $this->model('Quiz');
