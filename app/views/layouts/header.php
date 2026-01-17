@@ -68,3 +68,30 @@
     </div>
 </header>
 <div class="main-container">
+    <?php 
+        // --- SMART BACK BUTTON LOGIC ---
+        // 1. Get the current URL
+        $current_uri = $_SERVER['REQUEST_URI'];
+
+        // 2. Define pages where we should NOT show the back button
+        // (Dashboards, Login, Register, and the Home page)
+        $hidden_pages = ['dashboard', 'login', 'register', 'admin/dashboard'];
+        
+        $show_back_btn = true;
+        
+        // 3. Check if current URL matches any hidden page
+        foreach($hidden_pages as $page) {
+            if (strpos($current_uri, $page) !== false) {
+                $show_back_btn = false;
+                break;
+            }
+        }
+    ?>
+
+    <?php if($show_back_btn): ?>
+        <div style="margin-bottom: 15px;">
+            <a href="javascript:history.back()" class="btn-back">
+                &larr; Go Back
+            </a>
+        </div>
+    <?php endif; ?>
