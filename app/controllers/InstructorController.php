@@ -33,11 +33,19 @@ class InstructorController extends Controller {
             $data = [
                 'title' => trim($_POST['title']),
                 'description' => trim($_POST['description']),
-                'difficulty' => $_POST['difficulty']
+                'difficulty' => $_POST['difficulty'],
+                'max_capacity' => (int)$_POST['max_capacity'],
+                'reserved_seats' => (int)$_POST['reserved_seats']
             ];
+
+            // Validation: Reserved cannot be greater than Max
+            if ($data['reserved_seats'] >= $data['max_capacity']) {
+                die("Error: Reserved seats cannot exceed or equal Maximum capacity.");
+            }
 
             if ($this->courseModel->addCourse($data)) {
                 header('Location: ' . BASE_URL . 'instructor/index');
+                exit;
             } else {
                 die("Something went wrong.");
             }
@@ -45,6 +53,7 @@ class InstructorController extends Controller {
             $this->view('instructor/create_course');
         }
     }
+
 
     public function createQuiz() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -202,4 +211,46 @@ class InstructorController extends Controller {
             }
         }
     }
+
+
+
+
+
+
+
+        // Show the requests page
+    public function requests() {
+        $requestModel = $this->model('CourseRequest');
+        $requests = $requestModel->getRequestsByInstructor($_SESSION['user_id']);
+        
+        $this->view('instructor/requests', ['requests' => $requests]);
+    }
+
+    // Handle Approval
+    public function handleRequest($request_id, $action) {
+        $requestModel = $this->model('CourseRequest');
+        $enrollModel = $this->model('Enrollment');
+        $notifyModel = $this->model('Notification');
+
+        if ($action == 'approve') {
+            // 1. Mark Approved
+            $req = $requestModel->approveRequest($request_id);
+            
+            if ($req) {
+                // 2. Enroll the student
+                $enrollModel->enroll($req['learner_id'], $req['course_id']);
+
+                // 3. Notify Student
+                $message = "🎉 Request Approved! You have been granted a reserved seat.";
+                $link = BASE_URL . "learner/progress/" . $req['course_id'];
+                $notifyModel->create($req['learner_id'], $message, $link);
+
+                echo "<script>alert('Student Approved & Enrolled!'); window.location.href='" . BASE_URL . "instructor/requests';</script>";
+            }
+        } elseif ($action == 'reject') {
+            $requestModel->rejectRequest($request_id);
+            echo "<script>alert('Request Rejected.'); window.location.href='" . BASE_URL . "instructor/requests';</script>";
+        }
+    }
+
 }

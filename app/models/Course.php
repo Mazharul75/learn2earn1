@@ -1,28 +1,41 @@
 <?php
 class Course extends Model {
-    // Feature 1: Instructor Create Course [cite: 31, 147]
+    
+        // Updated addCourse to include capacity limits
     public function addCourse($data) {
-        $this->db->query("INSERT INTO courses (instructor_id, title, description, difficulty) VALUES (:uid, :t, :d, :diff)");
+        $this->db->query("INSERT INTO courses (instructor_id, title, description, difficulty, max_capacity, reserved_seats) 
+                          VALUES (:uid, :t, :d, :diff, :max, :res)");
         $this->db->bind(':uid', $_SESSION['user_id']);
         $this->db->bind(':t', $data['title']);
         $this->db->bind(':d', $data['description']);
         $this->db->bind(':diff', $data['difficulty']);
+        $this->db->bind(':max', $data['max_capacity']);
+        $this->db->bind(':res', $data['reserved_seats']);
         return $this->db->execute();
     }
 
-    // Used by Instructor Dashboard [cite: 87, 149]
-    public function getCoursesByInstructor($instructor_id){
-        $this->db->query(
-            "SELECT * FROM courses WHERE instructor_id = :instructor_id"
-        );
-        $this->db->bind(':instructor_id', $instructor_id);
+        // Updated: Fetch courses + Count of enrolled students
+    public function getCoursesByInstructor($instructor_id) {
+        $this->db->query("SELECT c.*, COUNT(e.learner_id) as student_count 
+                          FROM courses c 
+                          LEFT JOIN enrollments e ON c.id = e.course_id 
+                          WHERE c.instructor_id = :uid 
+                          GROUP BY c.id");
+        $this->db->bind(':uid', $instructor_id);
         return $this->db->resultSet();
     }
-    // Used by Learner Search & Browse [cite: 105, 150]
+
+    // Updated: Fetch all courses + Count of enrolled students
     public function getAllCourses() {
-        $this->db->query("SELECT * FROM courses");
+        $this->db->query("SELECT c.*, COUNT(e.learner_id) as student_count 
+                          FROM courses c 
+                          LEFT JOIN enrollments e ON c.id = e.course_id 
+                          GROUP BY c.id");
         return $this->db->resultSet();
     }
+
+
+
 
     // Needed for Instructor/manage view [cite: 98]
     public function getCourseById($id) {

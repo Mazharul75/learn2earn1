@@ -23,4 +23,13 @@ class Enrollment extends Model {
         $this->db->bind(':learner_id', $learner_id);
         return $this->db->resultSet();
     }
+
+        // Add this to Enrollment.php
+    public function countEnrollments($course_id) {
+        $this->db->query("SELECT COUNT(*) as count FROM enrollments WHERE course_id = :cid");
+        $this->db->bind(':cid', $course_id);
+        $row = $this->db->single();
+        return $row['count'];
+    }
+
 }

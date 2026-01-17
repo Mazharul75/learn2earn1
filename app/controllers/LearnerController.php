@@ -37,17 +37,72 @@ class LearnerController extends Controller {
         $this->view('learner/courses', ['allCourses' => $availableCourses]);
     }
 
-    // Process the enrollment action
+    
+
     public function enroll($course_id) {
         $learner_id = $_SESSION['user_id'];
-
-        if (!$this->enrollModel->isEnrolled($learner_id, $course_id)) {
-            $this->enrollModel->enroll($learner_id, $course_id);
-        }
         
-        header('Location: ' . BASE_URL . 'dashboard/index');
-        exit;
+        // 1. Check if already enrolled
+        if ($this->enrollModel->isEnrolled($learner_id, $course_id)) {
+            echo "<script>alert('You are already enrolled!'); window.location.href='" . BASE_URL . "learner/courses';</script>";
+            exit;
+        }
+
+        // 2. Check if already REQUESTED (Pending)
+        $requestModel = $this->model('CourseRequest'); // Create this model in Step 3
+        if ($requestModel->hasPendingRequest($learner_id, $course_id)) {
+             echo "<script>alert('⏳ You have already requested a seat. Please wait for instructor approval.'); window.location.href='" . BASE_URL . "learner/courses';</script>";
+             exit;
+        }
+
+        // 3. FETCH COURSE DETAILS
+        $course = $this->courseModel->getCourseById($course_id);
+        $currentCount = $this->enrollModel->countEnrollments($course_id);
+
+        // 4. CALCULATE LIMITS
+        $max = $course['max_capacity'];
+        $reserved = $course['reserved_seats'];
+        $public_limit = $max - $reserved;
+
+        // 5. APPLY LOGIC
+        if ($currentCount >= $max) {
+            // Case: Totally Full
+            echo "<script>alert('⛔️ Course is completely FULL.'); window.location.href='" . BASE_URL . "learner/courses';</script>";
+            exit;
+
+        } elseif ($currentCount >= $public_limit) {
+            // Case: Public Full -> Request Reserved Seat
+            // Redirect to a confirmation page or auto-request
+            $this->requestReservedSeat($learner_id, $course_id);
+            
+        } else {
+            // Case: Available -> Enroll Normally
+            $this->enrollModel->enroll($learner_id, $course_id);
+            header('Location: ' . BASE_URL . 'dashboard/index');
+            exit;
+        }
     }
+
+    // Helper to handle the request logic
+    private function requestReservedSeat($learner_id, $course_id) {
+        $requestModel = $this->model('CourseRequest');
+        
+        if ($requestModel->createRequest($learner_id, $course_id)) {
+            echo "<script>
+                alert('⚠️ Public seats are full! A request for a RESERVED SEAT has been sent to the instructor.'); 
+                window.location.href='" . BASE_URL . "learner/courses';
+            </script>";
+        } else {
+            die("Error sending request.");
+        }
+    }
+
+
+
+
+
+
+
 
     public function jobs() {
         $allJobs = $this->jobModel->getAllJobs();
