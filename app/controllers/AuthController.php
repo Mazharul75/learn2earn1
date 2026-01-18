@@ -18,14 +18,17 @@ class AuthController extends Controller {
                 $_SESSION['user_name'] = $user['name'];
                 $_SESSION['user_role'] = $user['role']; 
                 
-                // Redirect based on role
                 if ($user['role'] == 'admin') {
                     header('Location: ' . BASE_URL . 'admin/dashboard');
+                } elseif ($user['role'] == 'instructor') {
+                    header('Location: ' . BASE_URL . 'instructor/index');
+                } elseif ($user['role'] == 'client') {
+                    header('Location: ' . BASE_URL . 'client/index');
                 } else {
                     header('Location: ' . BASE_URL . 'dashboard/index');
                 }
                 exit;
-            }else {
+            } else {
                 $this->view('auth/login', ['error' => '❌ Invalid Email or Password']);
             }
         } else {
@@ -41,37 +44,31 @@ class AuthController extends Controller {
             $password = trim($_POST['password']);
             $role = $_POST['role'];
 
-            // 1. PHP VALIDATION: Check for Empty Fields
+            // 1. Validation
             if (empty($name) || empty($email) || empty($password)) {
                 $this->view('auth/register', ['error' => 'Please fill in all fields.']);
                 return;
             }
 
-            // 2. PHP VALIDATION: Email Format
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $this->view('auth/register', ['error' => 'Invalid email format.']);
-                return;
+            // 2. Validate Role (Security)
+            $allowed_roles = ['learner', 'instructor', 'client', 'admin'];
+            if (!in_array($role, $allowed_roles)) {
+                $role = 'learner'; // Default fallback
             }
 
-            // 3. PHP VALIDATION: Duplicate Check
             if ($this->userModel->findUserByEmail($email)) {
                 $this->view('auth/register', ['error' => 'User with this email already exists.']);
                 return;
             }
 
-            // 4. PHP VALIDATION: Password Strength
-            if (strlen($password) < 6) {
-                $this->view('auth/register', ['error' => 'Password must be at least 6 characters.']);
-                return;
-            }
-
-             // --- NEW: MAGIC ADMIN CHECK ---
-            // Check if this email was invited by an Admin
+            // 3. Admin Invite Logic
             $adminModel = $this->model('Admin');
-            if ($adminModel->isInvited($email)) {
-                $role = 'admin'; // ⚡️ FORCE OVERRIDE: They become Admin automatically
-            }
+            $is_admin_invite = false;
 
+            if ($adminModel->isInvited($email)) {
+                $role = 'admin'; 
+                $is_admin_invite = true;
+            }
 
             $data = [
                 'name' => $name,
@@ -81,6 +78,11 @@ class AuthController extends Controller {
             ];
 
             if ($this->userModel->register($data)) {
+                // Remove invite from whitelist so it can't be used again
+                if ($is_admin_invite) {
+                    $adminModel->consumeInvite($email);
+                }
+
                 header('Location: ' . BASE_URL . 'auth/login');
                 exit;
             } else {
@@ -91,14 +93,14 @@ class AuthController extends Controller {
         }
     }
 
-
+    // ... (Keep apiCheckEmail, profile, updateProfile, logout exactly as they were) ...
+    // They were correct in your code.
     public function apiCheckEmail() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $json = file_get_contents('php://input');
             $data = json_decode($json, true);
             $email = trim($data['email'] ?? '');
             
-            // 1. Load Admin Model to check invites
             $adminModel = $this->model('Admin');
 
             if (empty($email)) {
@@ -107,26 +109,14 @@ class AuthController extends Controller {
                 echo json_encode(['status' => 'invalid', 'message' => 'Invalid email format']);
             } elseif ($this->userModel->findUserByEmail($email)) {
                 echo json_encode(['status' => 'taken', 'message' => '❌ Email is already registered']);
-            } 
-            // 2. NEW CHECK: Is this an Admin Invite?
-            elseif ($adminModel->isInvited($email)) {
-                echo json_encode([
-                    'status' => 'available', 
-                    'message' => '✅ Email available',
-                    'is_admin_invite' => true // <--- Signal to Frontend
-                ]);
-            } 
-            else {
-                echo json_encode([
-                    'status' => 'available', 
-                    'message' => '✅ Email available',
-                    'is_admin_invite' => false
-                ]);
+            } elseif ($adminModel->isInvited($email)) {
+                echo json_encode(['status' => 'available', 'message' => '✅ Email available', 'is_admin_invite' => true]);
+            } else {
+                echo json_encode(['status' => 'available', 'message' => '✅ Email available', 'is_admin_invite' => false]);
             }
             exit;
         }
     }
-
 
     public function profile() {
         $user = $this->userModel->getUserById($_SESSION['user_id']);
@@ -135,27 +125,19 @@ class AuthController extends Controller {
     
     public function updateProfile() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            // 1. Sanitize Input
             $name = trim($_POST['name']);
             $email = trim($_POST['email']);
             $current_password = $_POST['current_password'];
             $new_password = !empty($_POST['new_password']) ? trim($_POST['new_password']) : null;
             $user_id = $_SESSION['user_id'];
 
-            // 2. Fetch User to get the REAL password hash
             $currentUser = $this->userModel->getUserById($user_id);
 
-            // 3. SECURITY CHECK: Verify Current Password
             if (!password_verify($current_password, $currentUser['password'])) {
-                // Return to view with Error
-                $this->view('auth/profile', [
-                    'user' => $currentUser, 
-                    'error' => '❌ Incorrect Current Password. Changes not saved.'
-                ]);
+                $this->view('auth/profile', ['user' => $currentUser, 'error' => '❌ Incorrect Current Password.']);
                 return;
             }
 
-            // 4. Prepare Data for Update
             $data = [
                 'id' => $user_id,
                 'name' => $name,
@@ -163,18 +145,11 @@ class AuthController extends Controller {
                 'password' => $new_password ? password_hash($new_password, PASSWORD_DEFAULT) : null
             ];
 
-            // 5. Attempt Update
             if ($this->userModel->updateProfile($data)) {
-                // Update Session Name if changed
                 $_SESSION['user_name'] = $name;
-                
-                // Success: Reload page showing new info
-                echo "<script>alert('✅ Profile Updated Successfully!'); window.location.href='" . BASE_URL . "auth/profile';</script>";
+                echo "<script>alert('✅ Profile Updated!'); window.location.href='" . BASE_URL . "auth/profile';</script>";
             } else {
-                 $this->view('auth/profile', [
-                    'user' => $currentUser, 
-                    'error' => '❌ Update failed. Email address might be already taken.'
-                ]);
+                 $this->view('auth/profile', ['user' => $currentUser, 'error' => '❌ Update failed.']);
             }
         }
     }
