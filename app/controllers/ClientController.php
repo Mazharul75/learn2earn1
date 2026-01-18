@@ -18,11 +18,11 @@ class ClientController extends Controller {
     public function applicants($job_id) {
         $jobAppModel = $this->model('JobApplication');
         $jobModel = $this->model('Job');
-        $recModel = $this->model('Recommendation'); // Load Recommendation Model
+        $recModel = $this->model('Recommendation'); 
         
         $applicants = $jobAppModel->getApplicantsByJob($job_id);
         $job = $jobModel->getJobById($job_id);
-        $recommendations = $recModel->getByJob($job_id); // Fetch recommendations
+        $recommendations = $recModel->getByJob($job_id); 
 
         $this->view('client/applicants', [
             'applicants' => $applicants,
@@ -33,19 +33,17 @@ class ClientController extends Controller {
 
     public function updateApplication($app_id, $status) {
         $jobAppModel = $this->model('JobApplication');
-        
-        // Validate status against your SQL ENUM
         $allowed = ['selected', 'rejected'];
+        
         if (in_array($status, $allowed)) {
             $jobAppModel->updateStatus($app_id, $status);
         }
-        
         header('Location: ' . $_SERVER['HTTP_REFERER']);
         exit;
     }
 
     public function post() {
-        $courseModel = $this->model('Course'); // Load the Course model
+        $courseModel = $this->model('Course');
         
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $data = [
@@ -59,50 +57,47 @@ class ClientController extends Controller {
                 exit;
             }
         } else {
-            // Fetch all courses to show in the dropdown
             $courses = $courseModel->getAllCourses();
             $this->view('client/post_job', ['courses' => $courses]);
         }
     }
 
-    // Feature 2: Select a learner
+    // Feature: Hire a learner directly (Alternative to updateApplication)
     public function select($app_id) {
-        // FIX: Use the Model instead of $this->db
         $jobAppModel = $this->model('JobApplication');
         if ($jobAppModel->selectLearner($app_id)) {
             header('Location: ' . $_SERVER['HTTP_REFERER']);
         }
     }
 
+    // Feature: Invite a learner from recommendations
     public function inviteLearner($learner_id, $job_id) {
         $notifyModel = $this->model('Notification');
         $jobModel = $this->model('Job'); 
+        $jobAppModel = $this->model('JobApplication'); // Load this to update status
         
-        // 1. Get Job Title for the message
-        $job = $jobModel->getJobById($job_id);
-        $jobTitle = $job['title'];
+        // 1. Check if already invited/applied to prevent duplicates
+        if ($jobAppModel->alreadyApplied($job_id, $learner_id)) {
+             echo "<script>alert('⚠️ This learner has already applied or been invited.'); window.location.href='" . $_SERVER['HTTP_REFERER'] . "';</script>";
+             return;
+        }
 
-        // 2. Create the Notification
-        $message = "You have been invited by the Client to apply for the job: $jobTitle. Click to upload your CV.";
+        // 2. Get Job Details
+        $job = $jobModel->getJobById($job_id);
+        
+        // 3. Create Notification
+        $message = "You have been invited to apply for: " . $job['title'];
         $link = BASE_URL . "learner/applyForm/" . $job_id;
         
+        // 4. Record the invitation in DB (as a special status or just notify)
+        // For now, we just notify. If you want to track it in DB, use jobAppModel->inviteLearner
         if ($notifyModel->create($learner_id, $message, $link)) {
-            // 3. Success Feedback: Alert and Redirect
             echo "<script>
-                    alert('✅ Invitation sent successfully to the learner!'); 
+                    alert('✅ Invitation sent successfully!'); 
                     window.location.href='" . $_SERVER['HTTP_REFERER'] . "';
                   </script>";
         } else {
             die("Error sending invitation.");
-        }
-    }
-
-    // Feature 3: Invite recommended learners
-    public function invite($learner_id, $job_id) {
-        // FIX: Use the Model instead of $this->db
-        $jobAppModel = $this->model('JobApplication');
-        if ($jobAppModel->inviteLearner($learner_id, $job_id)) {
-            header('Location: ' . $_SERVER['HTTP_REFERER']);
         }
     }
 }
