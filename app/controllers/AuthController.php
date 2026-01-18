@@ -152,7 +152,9 @@ class AuthController {
         if (file_exists($viewFile)) {
             include $viewFile;
         } else {
-            die("View not found: {$view}");
+            http_response_code(404);
+            include '../app/views/errors/404.php';
+            exit;
         }
     }
 }

@@ -90,8 +90,13 @@ class ClientController {
     private function loadView($view, $data = []) {
         extract($data);
         $viewFile = "../app/views/{$view}.php";
-        if (file_exists($viewFile)) include $viewFile;
-        else die("View not found: {$view}");
+        if (file_exists($viewFile)) {
+            include $viewFile;
+        } else {
+            http_response_code(404);
+            include '../app/views/errors/404.php';
+            exit;
+        }
     }
 }
 ?>

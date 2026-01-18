@@ -1,42 +1,42 @@
 <?php
+session_start();
 // 1. GLOBAL SETTINGS
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// 2. LOAD CONFIG & CORE
-// Ensure these paths are correct relative to your public folder
-require_once "../config/config.php";
-require_once "../config/database.php";
+// 2. DEFINE BASE URL & LOAD DATABASE
+define('BASE_URL', 'http://localhost/learn2earn/'); 
+
+// Load the database file we just fixed
+require_once "../config/database.php"; 
 
 try {
     // =============================================================
     // 3. PARSE URL (FIXED)
     // =============================================================
     
-    // Check if .htaccess sent the URL parameter (Safest Method)
-    if (isset($_GET['url'])) {
-        $path = $_GET['url'];
-    } else {
-        // Fallback: Manual Parsing
-        $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-        
-        // FIX: Specifically handle your folder structure
-        // We remove '/learn2earn/public' OR just '/learn2earn' to find the real route
-        $path = str_replace('/learn2earn/public', '', $path);
-        $path = str_replace('/learn2earn', '', $path);
+    // Get the raw path (e.g., "/learn2earn/dashboard/index")
+    $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+    // FIX: Break the URL into pieces
+    $segments = explode('/', trim($path, '/'));
+
+    // FILTER: Remove "learn2earn" and "public" from the start of the list
+    if (isset($segments[0]) && strtolower($segments[0]) === 'learn2earn') {
+        array_shift($segments); // Remove 'learn2earn'
+    }
+    if (isset($segments[0]) && strtolower($segments[0]) === 'public') {
+        array_shift($segments); // Remove 'public'
     }
 
-    $path = ltrim($path, '/'); // Remove leading slash
-    $segments = explode('/', $path);
-
-    // Defaults
+    // Now $segments[0] should be 'dashboard', 'auth', etc.
     $controllerName = !empty($segments[0]) ? $segments[0] : 'dashboard';
     $action         = !empty($segments[1]) ? $segments[1] : 'index';
     $param          = !empty($segments[2]) ? $segments[2] : null;
     $param2         = !empty($segments[3]) ? $segments[3] : null;
 
     // =============================================================
-    // 4. MANUAL ROUTER (The "Switchboard")
+    // 4. MANUAL ROUTER
     // =============================================================
 
     // --- ROUTE: AUTH ---
@@ -50,7 +50,7 @@ try {
         elseif ($action === 'updateProfile') $controller->updateProfile();
         elseif ($action === 'logout') $controller->logout();
         elseif ($action === 'apiCheckEmail') $controller->apiCheckEmail();
-        else $controller->login(); // Default
+        else $controller->login();
     }
 
     // --- ROUTE: LEARNER ---
@@ -131,12 +131,18 @@ try {
     // --- 404 NOT FOUND ---
     else {
         http_response_code(404);
-        echo "<div style='text-align:center; margin-top:50px;'>";
-        echo "<h1 style='color:red;'>404 - Not Found</h1>";
-        echo "<p>The controller '<strong>" . htmlspecialchars($controllerName) . "</strong>' does not exist.</p>";
-        echo "<p>Path detected: " . htmlspecialchars($path) . "</p>";
-        echo "<a href='" . BASE_URL . "dashboard/index'>Go Home</a>";
-        echo "</div>";
+        // Try to load the error view
+        $view404 = '../app/views/errors/404.php';
+        if (file_exists($view404)) {
+            include $view404;
+        } else {
+            // Fallback text if file missing
+            echo "<div style='text-align:center; margin-top:50px;'>";
+            echo "<h1 style='color:red;'>404 - Not Found</h1>";
+            echo "<p>The controller '<strong>" . htmlspecialchars($controllerName) . "</strong>' does not exist.</p>";
+            echo "<a href='" . BASE_URL . "dashboard/index'>Go Home</a>";
+            echo "</div>";
+        }
     }
 
 } catch (Exception $e) {
@@ -144,12 +150,13 @@ try {
     http_response_code(500);
     error_log("MVC Error: " . $e->getMessage());
 
-    if (ini_get('display_errors')) {
+    $view500 = '../app/views/errors/500.php';
+    if (file_exists($view500)) {
+        $error_message = $e->getMessage();
+        include $view500;
+    } else {
         echo "<h1>500 - Internal Server Error</h1>";
         echo "<p>Error: " . htmlspecialchars($e->getMessage()) . "</p>";
-        echo "<pre>" . htmlspecialchars($e->getTraceAsString()) . "</pre>";
-    } else {
-        echo "<h1>Something went wrong!</h1>";
     }
 }
 ?>
