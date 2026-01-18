@@ -73,4 +73,16 @@ class JobApplication extends Model {
         $this->db->bind(':lid', $learner_id);
         return $this->db->resultSet();
     }
+    // AJAX: Search applicants for a specific job
+    public function searchApplicants($job_id, $keyword) {
+        $this->db->query("SELECT users.name, users.email, job_applications.id as app_id, 
+                          job_applications.status, job_applications.cv_file 
+                          FROM job_applications 
+                          JOIN users ON job_applications.learner_id = users.id 
+                          WHERE job_applications.job_id = :jid 
+                          AND (users.name LIKE :kw OR users.email LIKE :kw)");
+        $this->db->bind(':jid', $job_id);
+        $this->db->bind(':kw', '%' . $keyword . '%');
+        return $this->db->resultSet();
+    }
 }

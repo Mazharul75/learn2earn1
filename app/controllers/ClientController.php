@@ -100,4 +100,18 @@ class ClientController extends Controller {
             die("Error sending invitation.");
         }
     }
+
+    public function searchApplicantsApi() {
+        if (isset($_GET['job_id']) && isset($_GET['query'])) {
+            $job_id = $_GET['job_id'];
+            $query = trim($_GET['query']);
+            
+            $jobAppModel = $this->model('JobApplication');
+            $applicants = $jobAppModel->searchApplicants($job_id, $query);
+            
+            header('Content-Type: application/json');
+            echo json_encode($applicants);
+            exit;
+        }
+    }
 }
