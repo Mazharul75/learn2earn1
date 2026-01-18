@@ -1,106 +1,123 @@
 <?php require_once __DIR__ . '/../layouts/header.php'; ?>
 
-    <h2>Applicants for: <?= $job['title']; ?></h2>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>Applicants for: <span style="color: #e74c3c;"><?= $job['title']; ?></span></h2>
+    </div>
 
-    <!-- ================= Applicants List ================= -->
-    <table border="1" cellpadding="8">
-        <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>CV</th>
-            <th>Status</th>
-            <th>Action</th>
-        </tr>
+    <h3 style="border-bottom: 2px solid #eee; padding-bottom: 10px;">1. Direct Applicants</h3>
+    
+    <div style="background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 40px;">
+        <table border="0" style="width: 100%; border-collapse: collapse;">
+            <thead style="background: #f8f9fa; border-bottom: 2px solid #e9ecef;">
+                <tr>
+                    <th style="padding: 15px; text-align: left; color: #555;">Name</th>
+                    <th style="padding: 15px; text-align: left; color: #555;">Email</th>
+                    <th style="padding: 15px; text-align: left; color: #555;">CV</th>
+                    <th style="padding: 15px; text-align: left; color: #555;">Status</th>
+                    <th style="padding: 15px; text-align: center; color: #555;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php if(!empty($applicants)): ?>
+                <?php foreach($applicants as $app): ?>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 15px; font-weight: 500;"><?= $app['name']; ?></td>
+                    <td style="padding: 15px; color: #666;"><?= $app['email']; ?></td>
+                    
+                    <td style="padding: 15px;">
+                        <?php if(!empty($app['cv_file'])): ?>
+                            <a href="<?= BASE_URL ?>public/uploads/cvs/<?= $app['cv_file']; ?>" target="_blank" style="text-decoration: none; color: #e74c3c; font-weight: bold;">
+                                📥 Download PDF
+                            </a>
+                        <?php else: ?>
+                            <span style="color: #999;">No CV</span>
+                        <?php endif; ?>
+                    </td>
 
-        <?php if(!empty($applicants)): ?>
-            <?php foreach($applicants as $app): ?>
-            <tr>
-                <td><?= $app['name']; ?></td>
-                <td><?= $app['email']; ?></td>
+                    <td style="padding: 15px;">
+                        <?php if($app['status'] == 'selected'): ?>
+                            <span style="background: #d4edda; color: #155724; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">Selected</span>
+                        <?php elseif($app['status'] == 'rejected'): ?>
+                            <span style="background: #f8d7da; color: #721c24; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">Rejected</span>
+                        <?php else: ?>
+                            <span style="background: #fff3cd; color: #856404; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">Applied</span>
+                        <?php endif; ?>
+                    </td>
 
-                <!-- CV Column (Gemini Fix Applied) -->
-                <td>
-                    <?php if(!empty($app['cv_file'])): ?>
-                        <a href="<?= BASE_URL ?>public/uploads/cvs/<?= $app['cv_file']; ?>" target="_blank">
-                            Download CV
-                        </a>
-                    <?php else: ?>
-                        No CV
-                    <?php endif; ?>
-                </td>
+                    <td style="padding: 15px; text-align: center;">
+                        <?php if($app['status'] == 'applied'): ?>
+                            <a href="<?= BASE_URL ?>client/updateApplication/<?= $app['app_id']; ?>/selected" class="btn" style="padding: 6px 12px; font-size: 0.85rem; background: #27ae60; text-decoration: none;">
+                                Hire
+                            </a>
+                            <a href="<?= BASE_URL ?>client/updateApplication/<?= $app['app_id']; ?>/rejected" class="btn" style="padding: 6px 12px; font-size: 0.85rem; background: #c0392b; text-decoration: none; margin-left: 5px;">
+                                Reject
+                            </a>
+                        <?php else: ?>
+                            <span style="color: #7f8c8d; font-style: italic;">Decision Made</span>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <tr><td colspan="5" style="padding: 20px; text-align: center; color: #7f8c8d;">No applicants yet.</td></tr>
+            <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
 
-                <td>
-                    <strong><?= ucfirst($app['status']); ?></strong>
-                </td>
+    <h3 style="border-bottom: 2px solid #eee; padding-bottom: 10px;">2. 🌟 Instructor Recommendations</h3>
+    <div style="background: #fff8e1; border-left: 4px solid #ffc107; padding: 15px; margin-bottom: 20px;">
+        <p style="margin: 0; color: #b7791f;">Instructors have vetted these students as top performers for your requirements.</p>
+    </div>
 
-                <td>
-                    <?php if($app['status'] == 'applied'): ?>
-                        <a href="<?= BASE_URL ?>client/updateApplication/<?= $app['app_id']; ?>/selected" class="btn">
-                            Hire
-                        </a>
-                        |
-                        <a href="<?= BASE_URL ?>client/updateApplication/<?= $app['app_id']; ?>/rejected" 
-                           class="btn" style="background:#e74c3c;">
-                            Reject
-                        </a>
-                    <?php else: ?>
-                        <span>Decision Made</span>
-                    <?php endif; ?>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        <?php else: ?>
-            <tr>
-                <td colspan="5">No applicants yet.</td>
-            </tr>
-        <?php endif; ?>
-    </table>
-
-    <hr>
-
-    <!-- ================= Instructor Recommendations (Gemini Feature) ================= -->
-    <h3>🌟 Instructor Recommendations</h3>
-
-    <table border="1">
-        <tr>
-            <th>Recommended Learner</th>
-            <th>Recommended By</th>
-            <th>Action</th>
-        </tr>
-        <?php if(!empty($recommendations)): ?>
-            <?php foreach($recommendations as $rec): ?>
-            <tr>
-                <td><?= $rec['learner_name'] ?> (<?= $rec['learner_email'] ?>)</td>
-                <td>Instructor: <?= $rec['instructor_name'] ?></td>
-                <td>
-                    <?php 
-                        // LOGIC: Check if this learner is already in the main Applicant list
-                        $alreadyApplied = false;
-                        foreach($applicants as $app) {
-                            // Check ID match (Safest) or Email match
-                            if((isset($app['learner_id']) && $app['learner_id'] == $rec['learner_id']) || 
-                               ($app['email'] == $rec['learner_email'])) {
-                                $alreadyApplied = true;
-                                break;
+    <div style="background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden;">
+        <table border="0" style="width: 100%; border-collapse: collapse;">
+            <thead style="background: #fdf2e9; border-bottom: 2px solid #fae5d3;">
+                <tr>
+                    <th style="padding: 15px; text-align: left; color: #d35400;">Recommended Learner</th>
+                    <th style="padding: 15px; text-align: left; color: #d35400;">Endorsed By</th>
+                    <th style="padding: 15px; text-align: center; color: #d35400;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php if(!empty($recommendations)): ?>
+                <?php foreach($recommendations as $rec): ?>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 15px; font-weight: 500;">
+                        <?= $rec['learner_name'] ?> <br>
+                        <small style="color: #666;"><?= $rec['learner_email'] ?></small>
+                    </td>
+                    <td style="padding: 15px; color: #555;">
+                        Instructor: <strong><?= $rec['instructor_name'] ?></strong>
+                    </td>
+                    <td style="padding: 15px; text-align: center;">
+                        <?php 
+                            $alreadyApplied = false;
+                            foreach($applicants as $app) {
+                                if((isset($app['learner_id']) && $app['learner_id'] == $rec['learner_id']) || ($app['email'] == $rec['learner_email'])) {
+                                    $alreadyApplied = true;
+                                    break;
+                                }
                             }
-                        }
-                    ?>
+                        ?>
 
-                    <?php if($alreadyApplied): ?>
-                        <span style="color: gray; font-weight: bold;">Already Applied</span>
-                    <?php else: ?>
-                        <a href="<?= BASE_URL ?>client/inviteLearner/<?= $rec['learner_id'] ?>/<?= $job['id'] ?>" class="btn">Invite to Apply</a>
-                    <?php endif; ?>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        <?php else: ?>
-            <tr><td colspan="3">No recommendations yet.</td></tr>
-        <?php endif; ?>
-    </table>
+                        <?php if($alreadyApplied): ?>
+                            <span style="background: #eee; color: #7f8c8d; padding: 5px 10px; border-radius: 4px; font-size: 0.85rem;">
+                                Already Applied
+                            </span>
+                        <?php else: ?>
+                            <a href="<?= BASE_URL ?>client/inviteLearner/<?= $rec['learner_id'] ?>/<?= $job['id'] ?>" class="btn" style="background: #e67e22; text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
+                                📩 Invite to Apply
+                            </a>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <tr><td colspan="3" style="padding: 20px; text-align: center; color: #7f8c8d;">No recommendations yet.</td></tr>
+            <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
 
-    <br>
-
-    <a href="<?= BASE_URL ?>client/index">Back to Dashboard</a>
-
-    <?php require_once __DIR__ . '/../layouts/footer.php'; ?>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>
