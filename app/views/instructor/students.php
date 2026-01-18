@@ -34,6 +34,5 @@
     </table>
     
     <br>
-    <a href="<?= BASE_URL ?>instructor/index" class="btn" style="background: #95a5a6; text-decoration: none;">Back to Dashboard</a>
 
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>
