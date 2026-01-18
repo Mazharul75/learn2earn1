@@ -1,53 +1,60 @@
 <?php
-class Enrollment extends Model {
-    // Save a new enrollment to the database
-    public function enroll($learner_id, $course_id) {
-        $this->db->query("INSERT INTO enrollments (learner_id, course_id) VALUES (:learner_id, :course_id)");
-        $this->db->bind(':learner_id', $learner_id);
-        $this->db->bind(':course_id', $course_id);
-        return $this->db->execute();
+require_once __DIR__ . '/../core/Database.php';
+
+class Enrollment {
+    private $connection;
+
+    public function __construct() {
+        $database = new Database();
+        $this->connection = $database->getConnection();
     }
 
-    // Check if a learner is already enrolled in a specific course
+    public function enroll($learner_id, $course_id) {
+        $query = "INSERT INTO enrollments (learner_id, course_id) VALUES (?, ?)";
+        $stmt = $this->connection->prepare($query);
+        $stmt->bind_param("ii", $learner_id, $course_id);
+        return $stmt->execute();
+    }
+
     public function isEnrolled($learner_id, $course_id) {
-        $this->db->query("SELECT * FROM enrollments WHERE learner_id = :learner_id AND course_id = :course_id");
-        $this->db->bind(':learner_id', $learner_id);
-        $this->db->bind(':course_id', $course_id);
-        return $this->db->single();
+        $query = "SELECT * FROM enrollments WHERE learner_id = ? AND course_id = ?";
+        $stmt = $this->connection->prepare($query);
+        $stmt->bind_param("ii", $learner_id, $course_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_assoc();
     }
 
     public function getLearnerCourses($learner_id) {
-        $this->db->query("SELECT courses.* FROM courses 
-                          JOIN enrollments ON courses.id = enrollments.course_id 
-                          WHERE enrollments.learner_id = :learner_id");
-        $this->db->bind(':learner_id', $learner_id);
-        return $this->db->resultSet();
+        $query = "SELECT courses.* FROM courses 
+                  JOIN enrollments ON courses.id = enrollments.course_id 
+                  WHERE enrollments.learner_id = ?";
+        $stmt = $this->connection->prepare($query);
+        $stmt->bind_param("i", $learner_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
     }
 
-        // Add this to Enrollment.php
     public function countEnrollments($course_id) {
-        $this->db->query("SELECT COUNT(*) as count FROM enrollments WHERE course_id = :cid");
-        $this->db->bind(':cid', $course_id);
-        $row = $this->db->single();
+        $query = "SELECT COUNT(*) as count FROM enrollments WHERE course_id = ?";
+        $stmt = $this->connection->prepare($query);
+        $stmt->bind_param("i", $course_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
         return $row['count'];
     }
 
-    // Check if a learner has COMPLETED a specific course
     public function hasCompleted($learner_id, $course_id) {
-        $this->db->query("SELECT status FROM enrollments WHERE learner_id = :lid AND course_id = :cid");
-        $this->db->bind(':lid', $learner_id);
-        $this->db->bind(':cid', $course_id);
-        $row = $this->db->single();
+        $query = "SELECT status FROM enrollments WHERE learner_id = ? AND course_id = ?";
+        $stmt = $this->connection->prepare($query);
+        $stmt->bind_param("ii", $learner_id, $course_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
         
-        // Return TRUE only if status is 'completed'
         return ($row && $row['status'] == 'completed');
     }
-
-    public function markAsCompleted($learner_id, $course_id) {
-        $this->db->query("UPDATE enrollments SET status = 'completed' WHERE learner_id = :lid AND course_id = :cid");
-        $this->db->bind(':lid', $learner_id);
-        $this->db->bind(':cid', $course_id);
-        return $this->db->execute();
-    }
-
 }
+?>

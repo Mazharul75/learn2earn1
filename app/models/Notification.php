@@ -1,23 +1,28 @@
 <?php
-class Notification extends Model {
+require_once __DIR__ . '/../core/Database.php';
+
+class Notification {
+    private $connection;
+
+    public function __construct() {
+        $database = new Database();
+        $this->connection = $database->getConnection();
+    }
+
     public function create($user_id, $message, $link = '#') {
-        $this->db->query("INSERT INTO notifications (user_id, message, link) VALUES (:uid, :msg, :link)");
-        $this->db->bind(':uid', $user_id);
-        $this->db->bind(':msg', $message);
-        $this->db->bind(':link', $link);
-        return $this->db->execute();
+        $query = "INSERT INTO notifications (user_id, message, link) VALUES (?, ?, ?)";
+        $stmt = $this->connection->prepare($query);
+        $stmt->bind_param("iss", $user_id, $message, $link);
+        return $stmt->execute();
     }
 
     public function getUnread($user_id) {
-        // Order by newest first
-        $this->db->query("SELECT * FROM notifications WHERE user_id = :uid AND is_read = 0 ORDER BY created_at DESC");
-        $this->db->bind(':uid', $user_id);
-        return $this->db->resultSet();
-    }
-
-    public function markRead($id) {
-        $this->db->query("UPDATE notifications SET is_read = 1 WHERE id = :id");
-        $this->db->bind(':id', $id);
-        return $this->db->execute();
+        $query = "SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC";
+        $stmt = $this->connection->prepare($query);
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
     }
 }
+?>

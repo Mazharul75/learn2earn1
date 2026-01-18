@@ -1,64 +1,77 @@
 <?php
-class Quiz extends Model {
-    public function addQuestion($data) {
-        // 1. Check for existing quiz or create new
-        $this->db->query("SELECT id FROM quizzes WHERE course_id = :cid");
-        $this->db->bind(':cid', $data['course_id']);
-        $quiz = $this->db->single();
+require_once __DIR__ . '/../core/Database.php';
 
-        $quiz_id = $quiz ? $quiz['id'] : null;
-        if (!$quiz_id) {
-            $this->db->query("INSERT INTO quizzes (course_id) VALUES (:cid)");
-            $this->db->bind(':cid', $data['course_id']);
-            $this->db->execute();
-            $quiz_id = $this->db->lastInsertId(); // Now works after Phase 1 fix
+class Quiz {
+    private $connection;
+
+    public function __construct() {
+        $database = new Database();
+        $this->connection = $database->getConnection();
+    }
+
+    public function addQuestion($data) {
+        // 1. Get/Create Quiz ID
+        $q1 = "SELECT id FROM quizzes WHERE course_id = ?";
+        $stmt1 = $this->connection->prepare($q1);
+        $stmt1->bind_param("i", $data['course_id']);
+        $stmt1->execute();
+        $res = $stmt1->get_result();
+        $row = $res->fetch_assoc();
+
+        if ($row) {
+            $quiz_id = $row['id'];
+        } else {
+            $q2 = "INSERT INTO quizzes (course_id) VALUES (?)";
+            $stmt2 = $this->connection->prepare($q2);
+            $stmt2->bind_param("i", $data['course_id']);
+            $stmt2->execute();
+            $quiz_id = $this->connection->insert_id;
         }
 
-        // 2. Insert the question using standardized keys
-        $this->db->query("INSERT INTO questions (quiz_id, question_text, option_a, option_b, option_c, option_d, correct_option) 
-                          VALUES (:qid, :text, :oa, :ob, :oc, :od, :correct)");
-        $this->db->bind(':qid', $quiz_id);
-        $this->db->bind(':text', $data['question_text']);
-        $this->db->bind(':oa', $data['option_a']);
-        $this->db->bind(':ob', $data['option_b']);
-        $this->db->bind(':oc', $data['option_c']);
-        $this->db->bind(':od', $data['option_d']);
-        $this->db->bind(':correct', strtoupper($data['correct_option']));
-        return $this->db->execute();
+        // 2. Add Question
+        $correct = strtoupper($data['correct_option']);
+        $query = "INSERT INTO questions (quiz_id, question_text, option_a, option_b, option_c, option_d, correct_option) 
+                  VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $stmt3 = $this->connection->prepare($query);
+        $stmt3->bind_param("issssss", $quiz_id, $data['question_text'], $data['option_a'], $data['option_b'], $data['option_c'], $data['option_d'], $correct);
+        return $stmt3->execute();
     }
 
     public function getQuizQuestions($course_id) {
-        // This joins Quizzes and Questions to find questions for a specific course
-        $this->db->query("SELECT q.* FROM questions q 
-                          JOIN quizzes z ON q.quiz_id = z.id 
-                          WHERE z.course_id = :cid");
-        $this->db->bind(':cid', $course_id);
-        return $this->db->resultSet();
+        $query = "SELECT q.* FROM questions q 
+                  JOIN quizzes z ON q.quiz_id = z.id 
+                  WHERE z.course_id = ?";
+        $stmt = $this->connection->prepare($query);
+        $stmt->bind_param("i", $course_id);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-    public function getQuizByCourse($course_id) {
-        $this->db->query("SELECT * FROM questions WHERE quiz_id = (SELECT id FROM quizzes WHERE course_id = :cid)");
-        $this->db->bind(':cid', $course_id);
-        return $this->db->resultSet();
+    public function hasQuiz($course_id) {
+        $query = "SELECT id FROM quizzes WHERE course_id = ? LIMIT 1";
+        $stmt = $this->connection->prepare($query);
+        $stmt->bind_param("i", $course_id);
+        $stmt->execute();
+        return $stmt->get_result()->num_rows > 0;
     }
 
     public function gradeQuiz($course_id, $answers) {
-        // Fetch questions
-        $this->db->query("SELECT * FROM questions WHERE quiz_id = (SELECT id FROM quizzes WHERE course_id = :cid)");
-        $this->db->bind(':cid', $course_id);
-        $questions = $this->db->resultSet();
-        
+        // Fetch Correct Answers
+        $query = "SELECT id, correct_option FROM questions WHERE quiz_id = (SELECT id FROM quizzes WHERE course_id = ?)";
+        $stmt = $this->connection->prepare($query);
+        $stmt->bind_param("i", $course_id);
+        $stmt->execute();
+        $questions = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
         $score = 0;
         $total = count($questions);
 
-        foreach($questions as $q) {
-            // Check if answer is set and matches correct option
-            if(isset($answers[$q['id']]) && $answers[$q['id']] == $q['correct_option']) {
+        foreach ($questions as $q) {
+            if (isset($answers[$q['id']]) && $answers[$q['id']] == $q['correct_option']) {
                 $score++;
             }
         }
 
-        // Calculate pass status (50% threshold)
         $passed = ($total > 0) && ($score / $total >= 0.5);
 
         return [
@@ -67,12 +80,5 @@ class Quiz extends Model {
             'total' => $total
         ];
     }
-
-    public function hasQuiz($course_id) {
-        // FIX: Check the 'quizzes' table, because 'questions' does not have course_id
-        $this->db->query("SELECT id FROM quizzes WHERE course_id = :cid LIMIT 1");
-        $this->db->bind(':cid', $course_id);
-        $this->db->execute();
-        return ($this->db->rowCount() > 0);
-    }
 }
+?>

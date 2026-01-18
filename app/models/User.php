@@ -1,63 +1,75 @@
 <?php
-class User extends Model {
-    // Register user [cite: 1210]
-    public function register($data) {
-        $this->db->query("INSERT INTO users (name, email, password, role) VALUES (:name, :email, :password, :role)");
-        $this->db->bind(':name', $data['name']);
-        $this->db->bind(':email', $data['email']);
-        $this->db->bind(':password', $data['password']);
-        $this->db->bind(':role', $data['role']);
-        return $this->db->execute();
+require_once __DIR__ . '/../core/Database.php';
+
+class User {
+    private $connection;
+
+    public function __construct() {
+        $database = new Database();
+        $this->connection = $database->getConnection();
     }
 
-    // Find user by email and verify password [cite: 1211]
-    public function login($email, $password) {
-        $this->db->query("SELECT * FROM users WHERE email = :email");
-        $this->db->bind(':email', $email);
-        $row = $this->db->single();
+    public function register($data) {
+        $query = "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)";
+        $stmt = $this->connection->prepare($query);
+        // "ssss" means 4 strings
+        $stmt->bind_param("ssss", $data['name'], $data['email'], $data['password'], $data['role']);
 
-        if ($row && password_verify($password, $row['password'])) {
-            return $row;
+        if ($stmt->execute()) {
+            return true;
+        }
+        return false;
+    }
+
+    public function login($email, $password) {
+        $query = "SELECT * FROM users WHERE email = ?";
+        $stmt = $this->connection->prepare($query);
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        
+        $result = $stmt->get_result();
+        $user = $result->fetch_assoc();
+
+        if ($user && password_verify($password, $user['password'])) {
+            return $user;
         }
         return false;
     }
 
     public function getUserById($id) {
-        $this->db->query("SELECT * FROM users WHERE id = :id");
-        $this->db->bind(':id', $id);
-        return $this->db->single();
+        $query = "SELECT * FROM users WHERE id = ?";
+        $stmt = $this->connection->prepare($query);
+        $stmt->bind_param("i", $id); // "i" for integer
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+        return $result->fetch_assoc();
+    }
+
+    public function findUserByEmail($email) {
+        $query = "SELECT id FROM users WHERE email = ?";
+        $stmt = $this->connection->prepare($query);
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        
+        $result = $stmt->get_result();
+        return $result->num_rows > 0;
     }
 
     public function updateProfile($data) {
-        // 1. If New Password is provided -> Update Name, Email, AND Password
         if (!empty($data['password'])) {
-            $this->db->query("UPDATE users SET name = :name, email = :email, password = :pass WHERE id = :id");
-            $this->db->bind(':pass', $data['password']);
-        } 
-        // 2. If No New Password -> Update ONLY Name and Email
-        else {
-            $this->db->query("UPDATE users SET name = :name, email = :email WHERE id = :id");
+            // Update Password too
+            $query = "UPDATE users SET name = ?, email = ?, password = ? WHERE id = ?";
+            $stmt = $this->connection->prepare($query);
+            $stmt->bind_param("sssi", $data['name'], $data['email'], $data['password'], $data['id']);
+        } else {
+            // Update only Name/Email
+            $query = "UPDATE users SET name = ?, email = ? WHERE id = ?";
+            $stmt = $this->connection->prepare($query);
+            $stmt->bind_param("ssi", $data['name'], $data['email'], $data['id']);
         }
-
-        $this->db->bind(':name', $data['name']);
-        $this->db->bind(':email', $data['email']);
-        $this->db->bind(':id', $data['id']);
         
-        try {
-            return $this->db->execute();
-        } catch (PDOException $e) {
-            // Likely an "Email already exists" error (Integrity Constraint)
-            return false; 
-        }
-    }
-
-    // New function for AJAX Availability Check
-    public function findUserByEmail($email) {
-        $this->db->query("SELECT id FROM users WHERE email = :email");
-        $this->db->bind(':email', $email);
-        $row = $this->db->single();
-
-        // Returns true if email exists, false otherwise
-        return ($this->db->rowCount() > 0);
+        return $stmt->execute();
     }
 }
+?>
