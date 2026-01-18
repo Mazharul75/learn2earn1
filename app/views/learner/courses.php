@@ -4,10 +4,8 @@
         <h2>Search and Enroll</h2>
     </div>
     
-    <div style="margin-bottom: 20px;">
-        <input type="text" id="courseSearch" placeholder="🔍 Search courses by title..." onkeyup="searchCourses()" 
-        style="width: 100%; padding: 12px; font-size: 1rem; border: 1px solid #ccc; border-radius: 5px;">
-    </div>
+    <input type="text" id="courseSearch" placeholder="🔍 Search courses..." onkeyup="searchCourses()" 
+           style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 5px;">
 
     <div style="background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden;">
         <table border="0" style="width: 100%; border-collapse: collapse;" id="courseTable">
@@ -21,46 +19,43 @@
             </thead>
             <tbody id="courseResults">
                 <?php foreach($allCourses as $course) : ?>
-                <?php 
-                    // 1. Calculate Seats
-                    $public_capacity = $course['max_capacity'] - $course['reserved_seats'];
-                    $seats_taken = $course['student_count'];
-                    $public_seats_left = $public_capacity - $seats_taken;
-                    $total_seats_left = $course['max_capacity'] - $seats_taken;
-                ?>
                 <tr style="border-bottom: 1px solid #eee;">
+                    
                     <td style="padding: 15px; font-weight: 600;"><?= $course['title']; ?></td>
-                    <td style="padding: 15px;"><?= $course['difficulty']; ?></td>
+                    
+                    <td style="padding: 15px;">
+                        <span style="background: <?= $course['ui_badge_color']; ?>; color: white; padding: 3px 8px; border-radius: 10px; font-size: 0.85rem;">
+                            <?= $course['difficulty']; ?>
+                        </span>
+                    </td>
                     
                     <td style="padding: 15px;">
                         <div style="margin-bottom: 5px;">
                             <strong><?= $course['student_count']; ?></strong> Enrolled
                         </div>
                         
-                        <?php if($public_seats_left > 0): ?>
-                            <span style="color: #27ae60; font-size: 0.85rem;">
-                                ✅ <?= $public_seats_left ?> Public Seats
-                            </span>
-                        <?php elseif($total_seats_left > 0): ?>
-                            <span style="color: #e67e22; font-size: 0.85rem; font-weight: bold;">
-                                ⚠️ Public Full (Reserved Only)
-                            </span>
+                        <?php if($course['ui_is_totally_full']): ?>
+                            <span style="color: #c0392b; font-weight: bold;">⛔️ Full</span>
+                        
+                        <?php elseif($course['ui_is_public_full']): ?>
+                            <span style="color: #e67e22; font-weight: bold;">⚠️ Reserved Only</span>
+                        
                         <?php else: ?>
-                            <span style="color: #c0392b; font-size: 0.85rem; font-weight: bold;">
-                                ⛔️ Completely Full
+                            <span style="color: #27ae60;">
+                                ✅ <?= $course['ui_public_seats'] ?> Seats Left
                             </span>
                         <?php endif; ?>
                     </td>
 
                     <td style="padding: 15px; text-align: center;">
-                        <?php if($public_seats_left > 0): ?>
-                            <a href="<?= BASE_URL ?>learner/enroll/<?= $course['id']; ?>" class="btn" style="background: #2ecc71;">Enroll Now</a>
+                        <?php if($course['ui_is_totally_full']): ?>
+                            <button class="btn" style="background:gray; cursor:not-allowed;" disabled>Full</button>
                         
-                        <?php elseif($total_seats_left > 0): ?>
+                        <?php elseif($course['ui_is_public_full']): ?>
                             <a href="<?= BASE_URL ?>learner/enroll/<?= $course['id']; ?>" class="btn" style="background: #e67e22;">Request Seat</a>
                         
                         <?php else: ?>
-                            <button class="btn" style="background: #95a5a6; cursor: not-allowed;" disabled>Full</button>
+                            <a href="<?= BASE_URL ?>learner/enroll/<?= $course['id']; ?>" class="btn" style="background: #2ecc71;">Enroll</a>
                         <?php endif; ?>
                     </td>
                 </tr>

@@ -18,22 +18,20 @@ class LearnerController extends Controller {
 
     // Show all courses available for enrollment
     public function courses() {
-        $allCourses = $this->courseModel->getAllCourses();
+        // 1. Get raw data
+        $allCourses = $this->courseModel->getAllCourses(); 
+        // Note: getAllCourses now returns PRE-CALCULATED data!
         
-        // 1. Get IDs of courses the user has ALREADY enrolled in
         $myCourses = $this->enrollModel->getLearnerCourses($_SESSION['user_id']);
-        $enrolledIds = array_column($myCourses, 'id'); // Extract IDs: [1, 3, 5]
+        $enrolledIds = array_column($myCourses, 'id');
 
-        // 2. Filter available courses
         $availableCourses = [];
         foreach($allCourses as $course) {
-            // If ID is NOT in the enrolled list, add it to available
             if (!in_array($course['id'], $enrolledIds)) {
                 $availableCourses[] = $course;
             }
         }
 
-        // 3. Send ONLY available courses to the view
         $this->view('learner/courses', ['allCourses' => $availableCourses]);
     }
 
