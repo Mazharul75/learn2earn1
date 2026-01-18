@@ -1,5 +1,20 @@
 RewriteEngine On
-# Send everything to the public/index.php file
+
+# 1. Routing Logic (Points to public/index.php )
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ public/index.php?url=$1 [QSA,L]
+
+# Deny access to database backups
+<Files "*.sql">
+    Require all denied
+</Files>
+
+# Deny access to configuration files
+<Files "config/*.php">
+    Require all denied
+</Files>
+
+# Optional: Force HTTPS
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
