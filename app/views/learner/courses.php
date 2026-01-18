@@ -66,36 +66,80 @@
 
     <script>
     function searchCourses() {
-        let query = document.getElementById('courseSearch').value;
-        let url = '<?= BASE_URL ?>learner/search?query=' + query;
+        var query = document.getElementById('courseSearch').value;
+        var url = '<?= BASE_URL ?>learner/search?query=' + query;
 
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                let tbody = document.getElementById('courseResults');
-                tbody.innerHTML = ''; 
+        // 1. Create the XHR Object (The "Old School" Way)
+        var xhr = new XMLHttpRequest();
 
-                if (data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center;">No courses found matching that title.</td></tr>';
-                    return;
+        // 2. Define what happens when the server responds
+        xhr.onreadystatechange = function() {
+            // readyState 4 means "Done", status 200 means "OK"
+            if (this.readyState == 4 && this.status == 200) {
+                try {
+                    // 3. Parse the JSON response
+                    var data = JSON.parse(this.responseText);
+                    var tbody = document.getElementById('courseResults');
+                    tbody.innerHTML = ''; 
+
+                    // Handle No Results
+                    if (data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center;">No courses found.</td></tr>';
+                        return;
+                    }
+
+                    // 4. Loop through data (Classic For Loop or forEach)
+                    data.forEach(function(course) {
+                        
+                        // Parse Numbers
+                        var max = parseInt(course.max_capacity);
+                        var reserved = parseInt(course.reserved_seats);
+                        var taken = parseInt(course.student_count) || 0;
+
+                        // Math Logic
+                        var public_left = max - reserved - taken;
+                        var total_left = max - taken;
+
+                        var availabilityHtml = '';
+                        var actionHtml = '';
+
+                        // Logic deciding what buttons to show
+                        if (public_left > 0) {
+                            availabilityHtml = '<div style="margin-bottom: 5px;"><strong>' + taken + '</strong> Enrolled</div>' +
+                                               '<span style="color: #27ae60; font-size: 0.85rem;">✅ ' + public_left + ' Public Seats</span>';
+                            actionHtml = '<a href="<?= BASE_URL ?>learner/enroll/' + course.id + '" class="btn" style="background: #2ecc71;">Enroll</a>';
+                        
+                        } else if (total_left > 0) {
+                            availabilityHtml = '<div style="margin-bottom: 5px;"><strong>' + taken + '</strong> Enrolled</div>' +
+                                               '<span style="color: #e67e22; font-size: 0.85rem; font-weight: bold;">⚠️ Reserved Only</span>';
+                            actionHtml = '<a href="<?= BASE_URL ?>learner/enroll/' + course.id + '" class="btn" style="background: #e67e22;">Request Seat</a>';
+                        
+                        } else {
+                            availabilityHtml = '<div style="margin-bottom: 5px;"><strong>' + taken + '</strong> Enrolled</div>' +
+                                               '<span style="color: #c0392b; font-size: 0.85rem; font-weight: bold;">⛔️ Full</span>';
+                            actionHtml = '<button class="btn" style="background:gray; cursor:not-allowed;" disabled>Full</button>';
+                        }
+
+                        // Append Row
+                        var row = '<tr style="border-bottom: 1px solid #eee;">' +
+                                    '<td style="padding: 15px; font-weight: 600;">' + course.title + '</td>' +
+                                    '<td style="padding: 15px;">' + course.difficulty + '</td>' +
+                                    '<td style="padding: 15px;">' + availabilityHtml + '</td>' +
+                                    '<td style="padding: 15px; text-align: center;">' + actionHtml + '</td>' +
+                                  '</tr>';
+                        
+                        tbody.innerHTML += row;
+                    });
+
+                } catch (error) {
+                    console.error("Invalid JSON:", error);
                 }
+            }
+        };
 
-                data.forEach(course => {
-                    // Re-calculate basic availability logic for JS (Simplified)
-                    let statusBadge = `<span style="color:#2980b9;">Check details to enroll</span>`;
-                    
-                    tbody.innerHTML += `
-                        <tr style="border-bottom: 1px solid #eee;">
-                            <td style="padding: 15px; font-weight: 600;">${course.title}</td>
-                            <td style="padding: 15px;">${course.difficulty}</td>
-                            <td style="padding: 15px;">${statusBadge}</td>
-                            <td style="padding: 15px; text-align: center;">
-                                <a href="<?= BASE_URL ?>learner/enroll/${course.id}" class="btn" style="background: #3498db;">View & Enroll</a>
-                            </td>
-                        </tr>`;
-                });
-            })
-            .catch(error => console.error('Error:', error));
+        // 5. Open and Send request
+        xhr.open("GET", url, true);
+        xhr.send();
     }
     </script>
 

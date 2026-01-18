@@ -140,7 +140,12 @@ class Course extends Model {
 
     // AJAX Course Search Feature [cite: 114, 151]
     public function searchCourses($keyword) {
-        $this->db->query("SELECT * FROM courses WHERE title LIKE :keyword");
+        // Fix: Added COUNT(e.learner_id) and JOIN to get enrollment numbers
+        $this->db->query("SELECT c.*, COUNT(e.learner_id) as student_count 
+                          FROM courses c 
+                          LEFT JOIN enrollments e ON c.id = e.course_id 
+                          WHERE c.title LIKE :keyword
+                          GROUP BY c.id");
         $this->db->bind(':keyword', '%' . $keyword . '%');
         return $this->db->resultSet();
     }

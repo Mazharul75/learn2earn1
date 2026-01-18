@@ -166,18 +166,44 @@ class LearnerController extends Controller {
     }
 
     public function search() {
-        if (isset($_GET['query'])) {
-            $keyword = trim($_GET['query']);
-            $courses = $this->courseModel->searchCourses($keyword);
-            
-            // Return data as JSON for AJAX 
-            header('Content-Type: application/json');
-            echo json_encode($courses);
-            exit;
+        // 1. Get the keyword (if empty, we default to empty string)
+        $keyword = isset($_GET['query']) ? trim($_GET['query']) : '';
+        
+        // 2. Fetch raw results based on keyword
+        if ($keyword === '') {
+            // If search is cleared, fetch ALL courses (so we can filter them below)
+            $allCourses = $this->courseModel->getAllCourses();
+        } else {
+            // Otherwise search by title
+            $allCourses = $this->courseModel->searchCourses($keyword);
         }
+
+        // 3. CRITICAL FIX: Filter out courses the learner is ALREADY enrolled in
+        $myCourses = $this->enrollModel->getLearnerCourses($_SESSION['user_id']);
+        $enrolledIds = array_column($myCourses, 'id'); // e.g. [1, 5, 9]
+
+        $availableCourses = [];
+        
+        if (!empty($allCourses)) {
+            foreach($allCourses as $course) {
+                // Only add to list if NOT in enrolled IDs
+                if (!in_array($course['id'], $enrolledIds)) {
+                    
+                    // 4. (Optional) Re-apply Seat Logic here if your JS needs it
+                    // The View JS calculates this, but we ensure the data is clean
+                    
+                    $availableCourses[] = $course;
+                }
+            }
+        }
+
+        // 5. Return the CLEAN list
+        header('Content-Type: application/json');
+        echo json_encode($availableCourses);
+        exit;
     }
 
-        public function progress($course_id) {
+    public function progress($course_id) {
         $progressModel = $this->model('Progress');
         $courseModel = $this->model('Course');
         $quizModel = $this->model('Quiz'); 
