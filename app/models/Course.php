@@ -147,10 +147,13 @@ class Course {
         $query = "SELECT users.id, users.name, users.email 
                   FROM enrollments 
                   JOIN users ON enrollments.learner_id = users.id 
-                  WHERE enrollments.course_id = ? AND enrollments.progress = 100";
+                  WHERE enrollments.course_id = ? 
+                  AND (enrollments.status = 'completed' OR enrollments.progress = 100)";
+        
         $stmt = $this->connection->prepare($query);
         $stmt->bind_param("i", $course_id);
         $stmt->execute();
+        
         $result = $stmt->get_result();
         return $result->fetch_all(MYSQLI_ASSOC);
     }

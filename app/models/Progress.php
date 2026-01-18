@@ -130,9 +130,10 @@ class Progress {
 
     public function markCourseComplete($learner_id, $course_id) {
         $status = 'completed';
-        $query = "UPDATE enrollments SET status = ? WHERE learner_id = ? AND course_id = ?";
+        $progress = 100;
+        $query = "UPDATE enrollments SET status = ?, progress = ? WHERE learner_id = ? AND course_id = ?";
         $stmt = $this->connection->prepare($query);
-        $stmt->bind_param("sii", $status, $learner_id, $course_id);
+        $stmt->bind_param("siii", $status, $progress, $learner_id, $course_id);
         return $stmt->execute();
     }
 
