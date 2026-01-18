@@ -1,6 +1,6 @@
 <?php
 class Course extends Model {
-    
+
     public function addCourse($data) {
         $this->db->query("INSERT INTO courses (instructor_id, title, description, difficulty, max_capacity, reserved_seats, prerequisite_id) 
                           VALUES (:uid, :t, :d, :diff, :max, :res, :pre)");
@@ -39,17 +39,58 @@ class Course extends Model {
                           FROM courses c 
                           LEFT JOIN enrollments e ON c.id = e.course_id 
                           GROUP BY c.id");
-        return $this->db->resultSet();
+        $raw = $this->db->resultSet();
+        
+        // STRICT MVC: Process data before returning
+        return $this->prepareForDisplay($raw);
     }
 
+    public function prepareForDisplay($courses) {
+        $processed = [];
+        
+        // If single record, wrap in array to treat same way
+        $isSingle = isset($courses['id']);
+        $items = $isSingle ? [$courses] : $courses;
 
+        foreach ($items as $c) {
+            // 1. Calculate Seats Logic
+            $max = $c['max_capacity'];
+            $taken = $c['student_count'] ?? 0; // Handle null
+            $reserved = $c['reserved_seats'];
+            
+            $public_left = $max - $reserved - $taken;
+            $total_left = $max - $taken;
 
+            // 2. Determine UI State (Logic moved from View to Model)
+            $c['ui_public_seats'] = ($public_left > 0) ? $public_left : 0;
+            $c['ui_is_public_full'] = ($public_left <= 0);
+            $c['ui_is_totally_full'] = ($total_left <= 0);
+            
+            // 3. Badge Colors (Presentation Logic in Model)
+            $c['ui_badge_color'] = match($c['difficulty']) {
+                'Beginner' => '#2ecc71', // Green
+                'Intermediate' => '#f39c12', // Orange
+                'Advanced' => '#e74c3c', // Red
+                default => '#95a5a6' // Grey
+            };
+
+            $processed[] = $c;
+        }
+
+        return $isSingle ? $processed[0] : $processed;
+    }
 
     // Needed for Instructor/manage view [cite: 98]
     public function getCourseById($id) {
-        $this->db->query("SELECT * FROM courses WHERE id = :id");
+        $this->db->query("SELECT c.*, COUNT(e.learner_id) as student_count 
+                          FROM courses c 
+                          LEFT JOIN enrollments e ON c.id = e.course_id 
+                          WHERE c.id = :id
+                          GROUP BY c.id");
         $this->db->bind(':id', $id);
-        return $this->db->single();
+        $raw = $this->db->single();
+        
+        return $this->prepareForDisplay($raw);
     }
 
     // Feature 2: Get materials for a specific course [cite: 152]
