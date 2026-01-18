@@ -269,4 +269,19 @@ class InstructorController extends Controller {
         }
     }
 
+    public function searchStudentsApi() {
+        if (isset($_GET['course_id']) && isset($_GET['query'])) {
+            $course_id = $_GET['course_id'];
+            $query = trim($_GET['query']);
+            
+            // 1. Fetch Data
+            $students = $this->courseModel->searchEnrolledStudents($course_id, $query);
+            
+            // 2. Return JSON
+            header('Content-Type: application/json');
+            echo json_encode($students);
+            exit;
+        }
+    }
+
 }

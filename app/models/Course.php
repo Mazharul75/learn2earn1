@@ -149,4 +149,16 @@ class Course extends Model {
         $this->db->bind(':keyword', '%' . $keyword . '%');
         return $this->db->resultSet();
     }
+
+    // AJAX: Search students in a specific course
+    public function searchEnrolledStudents($course_id, $keyword) {
+        $this->db->query("SELECT u.name, u.email, e.progress, e.enrolled_at 
+                          FROM enrollments e
+                          JOIN users u ON e.learner_id = u.id
+                          WHERE e.course_id = :cid 
+                          AND (u.name LIKE :kw OR u.email LIKE :kw)");
+        $this->db->bind(':cid', $course_id);
+        $this->db->bind(':kw', '%' . $keyword . '%');
+        return $this->db->resultSet();
+    }
 }
