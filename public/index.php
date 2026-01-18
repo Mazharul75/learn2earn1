@@ -6,7 +6,7 @@ ini_set('display_errors', 1);
 // 2. LOAD CONFIG & CORE
 // Ensure these paths are correct relative to your public folder
 require_once "../config/config.php";
-require_once "../app/core/Database.php"; 
+require_once "../config/database.php";
 
 try {
     // =============================================================
