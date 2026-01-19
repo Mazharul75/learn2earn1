@@ -37,7 +37,7 @@ class AuthController {
                 }
                 exit;
             } else {
-                $this->loadView('auth/login', ['error' => '❌ Invalid Email or Password']);
+                $this->loadView('auth/login', ['error' => 'Invalid Email or Password']);
             }
         } else {
             $this->loadView('auth/login');
@@ -95,23 +95,23 @@ class AuthController {
             
             // 1. Check if Empty
             if (empty($email)) {
-                echo json_encode(['status' => 'taken', 'message' => '❌ Email cannot be empty']);
+                echo json_encode(['status' => 'taken', 'message' => 'Email cannot be empty']);
             } 
             // 2. Check Format (Force 'taken' status so frontend shows Red Error)
             elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                echo json_encode(['status' => 'taken', 'message' => '❌ Invalid email format']);
+                echo json_encode(['status' => 'taken', 'message' => 'Invalid email format']);
             } 
             // 3. Check if Registered
             elseif ($this->userModel->findUserByEmail($email)) {
-                echo json_encode(['status' => 'taken', 'message' => '❌ Email is already registered']);
+                echo json_encode(['status' => 'taken', 'message' => 'Email is already registered']);
             } 
             // 4. Check Admin Invite
             elseif ($this->adminModel->isInvited($email)) {
-                echo json_encode(['status' => 'available', 'message' => '✅ Email available (Admin Invite)', 'is_admin_invite' => true]);
+                echo json_encode(['status' => 'available', 'message' => 'Email available (Admin Invite)', 'is_admin_invite' => true]);
             } 
             // 5. Available
             else {
-                echo json_encode(['status' => 'available', 'message' => '✅ Email available', 'is_admin_invite' => false]);
+                echo json_encode(['status' => 'available', 'message' => 'Email available', 'is_admin_invite' => false]);
             }
             exit;
         }
@@ -133,7 +133,7 @@ class AuthController {
             $currentUser = $this->userModel->getUserById($user_id);
 
             if (!password_verify($current_password, $currentUser['password'])) {
-                $this->loadView('auth/profile', ['user' => $currentUser, 'error' => '❌ Incorrect Current Password.']);
+                $this->loadView('auth/profile', ['user' => $currentUser, 'error' => 'Incorrect Current Password.']);
                 return;
             }
 
@@ -146,9 +146,9 @@ class AuthController {
 
             if ($this->userModel->updateProfile($data)) {
                 $_SESSION['user_name'] = $name;
-                echo "<script>alert('✅ Profile Updated!'); window.location.href='" . BASE_URL . "auth/profile';</script>";
+                echo "<script>alert('Profile Updated!'); window.location.href='" . BASE_URL . "auth/profile';</script>";
             } else {
-                 $this->loadView('auth/profile', ['user' => $currentUser, 'error' => '❌ Update failed.']);
+                 $this->loadView('auth/profile', ['user' => $currentUser, 'error' => 'Update failed.']);
             }
         }
     }
