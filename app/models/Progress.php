@@ -106,7 +106,7 @@ class Progress {
             return $stmt2->execute();
         }
     }
-
+   //pending submissions tasks
     public function getPendingSubmissions($course_id) {
         $status = 'pending';
         $query = "SELECT tc.id as completion_id, tc.submission_file, tc.status, u.name as student_name, ct.title as task_title 
