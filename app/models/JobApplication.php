@@ -9,23 +9,15 @@ class JobApplication {
         $this->connection = $database->getConnection();
     }
 
-    // =========================================================
-    // SMART APPLY: UPDATE if invited, INSERT if new
-    // =========================================================
     public function apply($job_id, $learner_id, $cv_file) {
-        // 1. Check existing record
         $existing = $this->alreadyApplied($job_id, $learner_id);
 
         if ($existing) {
-            // SCENARIO 1: INVITED USER APPLIES
-            // We UPDATE the existing row: Add CV and change status to 'applied'
             $query = "UPDATE job_applications SET cv_file = ?, status = 'applied' WHERE id = ?";
             $stmt = $this->connection->prepare($query);
             $stmt->bind_param("si", $cv_file, $existing['id']);
             return $stmt->execute();
         } else {
-            // SCENARIO 2: NEW APPLICANT
-            // We INSERT a new row
             $status = 'applied';
             $query = "INSERT INTO job_applications (job_id, learner_id, cv_file, status) VALUES (?, ?, ?, ?)";
             $stmt = $this->connection->prepare($query);
