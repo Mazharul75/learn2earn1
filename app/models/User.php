@@ -12,7 +12,7 @@ class User {
     public function register($data) {
         $query = "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)";
         $stmt = $this->connection->prepare($query);
-        // "ssss" means 4 strings
+    
         $stmt->bind_param("ssss", $data['name'], $data['email'], $data['password'], $data['role']);
 
         if ($stmt->execute()) {
@@ -39,7 +39,7 @@ class User {
     public function getUserById($id) {
         $query = "SELECT * FROM users WHERE id = ?";
         $stmt = $this->connection->prepare($query);
-        $stmt->bind_param("i", $id); // "i" for integer
+        $stmt->bind_param("i", $id); 
         $stmt->execute();
 
         $result = $stmt->get_result();
@@ -58,12 +58,12 @@ class User {
 
     public function updateProfile($data) {
         if (!empty($data['password'])) {
-            // Update Password too
+         
             $query = "UPDATE users SET name = ?, email = ?, password = ? WHERE id = ?";
             $stmt = $this->connection->prepare($query);
             $stmt->bind_param("sssi", $data['name'], $data['email'], $data['password'], $data['id']);
         } else {
-            // Update only Name/Email
+           
             $query = "UPDATE users SET name = ?, email = ? WHERE id = ?";
             $stmt = $this->connection->prepare($query);
             $stmt->bind_param("ssi", $data['name'], $data['email'], $data['id']);
