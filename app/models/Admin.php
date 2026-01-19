@@ -15,13 +15,9 @@ class Admin {
         return $result->fetch_all(MYSQLI_ASSOC);
     }
 
-    // =========================================================
-    // FIX 1: SIMPLIFIED INVITE LOGIC (No 'status' column needed)
-    // =========================================================
     
     public function inviteAdmin($email, $invited_by) {
         $conn = $this->db->getConnection();
-        // Simply insert the email. If it exists, we assume it's pending.
         $stmt = $conn->prepare("INSERT INTO admin_invites (email, invited_by) VALUES (?, ?)");
         $stmt->bind_param("si", $email, $invited_by);
         return $stmt->execute();
@@ -29,8 +25,6 @@ class Admin {
 
     public function isInvited($email) {
         $conn = $this->db->getConnection();
-        // ERROR FIX: Removed "AND status = 'pending'"
-        // We just check if the email exists in the table.
         $stmt = $conn->prepare("SELECT id FROM admin_invites WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();
@@ -40,16 +34,11 @@ class Admin {
 
     public function consumeInvite($email) {
         $conn = $this->db->getConnection();
-        // ERROR FIX: Instead of updating 'status', we DELETE the row.
-        // This effectively marks it as "used" because it's gone.
         $stmt = $conn->prepare("DELETE FROM admin_invites WHERE email = ?");
         $stmt->bind_param("s", $email);
         return $stmt->execute();
     }
 
-    // =========================================================
-    // DELETE USER FUNCTION (Kept your previous fix)
-    // =========================================================
     public function deleteUser($id) {
         $conn = $this->db->getConnection();
 
@@ -103,7 +92,7 @@ class Admin {
         $stmt->execute();
         $stmt->close();
 
-        // 7. Handle Instructor Courses (Unlink jobs before delete)
+        // 7. Handle Instructor Courses 
         $stmt = $conn->prepare("SELECT id FROM courses WHERE instructor_id = ?");
         $stmt->bind_param("i", $id);
         $stmt->execute();
