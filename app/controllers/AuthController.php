@@ -13,7 +13,6 @@ class AuthController {
 
     public function login() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            // Teacher Style: Null Coalescing Operator
             $email = trim($_POST['email'] ?? '');
             $password = trim($_POST['password'] ?? '');
             
@@ -97,7 +96,7 @@ class AuthController {
             if (empty($email)) {
                 echo json_encode(['status' => 'taken', 'message' => 'Email cannot be empty']);
             } 
-            // 2. Check Format (Force 'taken' status so frontend shows Red Error)
+            // 2. Check Format 
             elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 echo json_encode(['status' => 'taken', 'message' => 'Invalid email format']);
             } 
