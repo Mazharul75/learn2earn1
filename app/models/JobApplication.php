@@ -9,12 +9,28 @@ class JobApplication {
         $this->connection = $database->getConnection();
     }
 
+    // =========================================================
+    // FIX: SMART APPLY (Handles Invitations)
+    // =========================================================
     public function apply($job_id, $learner_id, $cv_file) {
-        $status = 'applied';
-        $query = "INSERT INTO job_applications (job_id, learner_id, cv_file, status) VALUES (?, ?, ?, ?)";
-        $stmt = $this->connection->prepare($query);
-        $stmt->bind_param("iiss", $job_id, $learner_id, $cv_file, $status);
-        return $stmt->execute();
+        // 1. Check if there is an existing row (like an invitation)
+        $existing = $this->alreadyApplied($job_id, $learner_id);
+
+        if ($existing) {
+            // If they were invited, we UPDATE the existing row
+            // We change status from 'invited' to 'applied' and add the CV
+            $query = "UPDATE job_applications SET cv_file = ?, status = 'applied' WHERE id = ?";
+            $stmt = $this->connection->prepare($query);
+            $stmt->bind_param("si", $cv_file, $existing['id']);
+            return $stmt->execute();
+        } else {
+            // 2. If no row exists, we INSERT a new one
+            $status = 'applied';
+            $query = "INSERT INTO job_applications (job_id, learner_id, cv_file, status) VALUES (?, ?, ?, ?)";
+            $stmt = $this->connection->prepare($query);
+            $stmt->bind_param("iiss", $job_id, $learner_id, $cv_file, $status);
+            return $stmt->execute();
+        }
     }
 
     public function getApplicantsByJob($job_id) {
@@ -31,6 +47,7 @@ class JobApplication {
     }
 
     public function alreadyApplied($job_id, $learner_id) {
+        // We select * so we can check the 'status' column later
         $query = "SELECT * FROM job_applications WHERE job_id = ? AND learner_id = ?";
         $stmt = $this->connection->prepare($query);
         $stmt->bind_param("ii", $job_id, $learner_id);
@@ -79,6 +96,17 @@ class JobApplication {
         $stmt->execute();
         $result = $stmt->get_result();
         return $result->fetch_all(MYSQLI_ASSOC);
+    }
+
+    public function recordInvitation($job_id, $learner_id) {
+        if ($this->alreadyApplied($job_id, $learner_id)) {
+            return true; 
+        }
+
+        $query = "INSERT INTO job_applications (job_id, learner_id, cv_file, status) VALUES (?, ?, '', 'invited')";
+        $stmt = $this->connection->prepare($query);
+        $stmt->bind_param("ii", $job_id, $learner_id);
+        return $stmt->execute();
     }
 }
 ?>
