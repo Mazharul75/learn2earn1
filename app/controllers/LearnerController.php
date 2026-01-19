@@ -1,5 +1,4 @@
 <?php
-// 1. TEACHER STYLE: Manual Requires
 require_once '../app/models/Course.php';
 require_once '../app/models/Enrollment.php';
 require_once '../app/models/Job.php';
@@ -10,7 +9,6 @@ require_once '../app/models/Notification.php';
 require_once '../app/models/CourseRequest.php';
 
 class LearnerController {
-    // 2. TEACHER STYLE: Private Properties
     private $courseModel;
     private $enrollModel;
     private $jobModel;
@@ -21,13 +19,11 @@ class LearnerController {
     private $requestModel;
 
     public function __construct() {
-        // 3. SECURITY: Check Session
         if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'learner') {
             header('Location: ' . BASE_URL . 'auth/login');
             exit;
         }
 
-        // 4. TEACHER STYLE: Manual Instantiation
         $this->courseModel = new Course();
         $this->enrollModel = new Enrollment();
         $this->jobModel = new Job();
@@ -50,11 +46,91 @@ class LearnerController {
         ]);
     }
 
+    // =========================================================
+    // THE FIX: This function is now HARMLESS.
+    // It does NOT write to the database. It only redirects.
+    // =========================================================
+    public function apply($job_id) {
+        // DELETE THE DATABASE CODE THAT WAS HERE.
+        // Redirect straight to the form.
+        header('Location: ' . BASE_URL . 'learner/applyForm/' . $job_id);
+        exit;
+    }
+
+    // =========================================================
+    // FIX 2: Allow "Invited" users to see the form
+    // =========================================================
+    public function applyForm($job_id) {
+        $existingApp = $this->jobAppModel->alreadyApplied($job_id, $_SESSION['user_id']);
+
+        // IF they exist AND status is NOT invited, kick them out.
+        // We use strtolower to handle 'Invited' vs 'invited' mismatch.
+        if ($existingApp && strtolower($existingApp['status']) !== 'invited') {
+             
+             // Check if view exists
+             $viewFile = "../app/views/learner/alreadyApplied.php";
+             if (file_exists($viewFile)) {
+                 require_once $viewFile;
+             } else {
+                 echo "<div style='text-align:center; padding:50px;'>
+                        <h2 style='color:green;'>✅ You have already applied!</h2>
+                        <a href='" . BASE_URL . "dashboard/index'>Go Dashboard</a>
+                      </div>";
+             }
+             exit;
+        }
+
+        // Load the form
+        $job = $this->jobModel->getJobById($job_id);
+        
+        $viewFile = "../app/views/learner/applyForm.php";
+        if (file_exists($viewFile)) {
+            require_once $viewFile;
+        } else {
+            $this->loadView('learner/apply_job', ['job' => $job]);
+        }
+    }
+
+    // ... (Keep the rest of the functions exactly as they are) ...
+    public function submitApplication() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['cv'])) {
+            $job_id = $_POST['job_id'];
+            $upload_dir = "../public/uploads/cvs/";
+            if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
+            $ext = strtolower(pathinfo($_FILES['cv']['name'], PATHINFO_EXTENSION));
+            if ($ext != 'pdf') { die("Only PDF CVs allowed."); }
+            $filename = "cv_" . $_SESSION['user_id'] . "_" . time() . ".pdf";
+            if (move_uploaded_file($_FILES['cv']['tmp_name'], $upload_dir . $filename)) {
+                $this->jobAppModel->apply($job_id, $_SESSION['user_id'], $filename);
+                header('Location: ' . BASE_URL . 'dashboard/index');
+                exit;
+            }
+        }
+        die("Application failed.");
+    }
+
+    public function jobs() {
+        $allJobs = $this->jobModel->getAllJobs();
+        $availableJobs = [];
+        foreach ($allJobs as $job) {
+            $existingApp = $this->jobAppModel->alreadyApplied($job['id'], $_SESSION['user_id']);
+            if ($existingApp && strtolower($existingApp['status']) !== 'invited') {
+                continue; 
+            }
+            if (!empty($job['required_course_id'])) {
+                $job['is_unlocked'] = $this->progressModel->isCourseCompleted($job['required_course_id'], $_SESSION['user_id']);
+            } else {
+                $job['is_unlocked'] = true;
+            }
+            $availableJobs[] = $job;
+        }
+        $this->loadView('learner/jobs', ['allJobs' => $availableJobs]);
+    }
+
     public function courses() {
         $allCourses = $this->courseModel->getAllCourses();
         $myCourses = $this->enrollModel->getLearnerCourses($_SESSION['user_id']);
         $enrolledIds = array_column($myCourses, 'id');
-
         $availableCourses = [];
         foreach($allCourses as $course) {
             if (!in_array($course['id'], $enrolledIds)) {
@@ -66,37 +142,29 @@ class LearnerController {
 
     public function enroll($course_id) {
         $learner_id = $_SESSION['user_id'];
-        
         if ($this->enrollModel->isEnrolled($learner_id, $course_id)) {
             echo "<script>alert('You are already enrolled!'); window.location.href='" . BASE_URL . "learner/courses';</script>";
             exit;
         }
-
         $course = $this->courseModel->getCourseById($course_id);
         if (!empty($course['prerequisite_id'])) {
             if (!$this->enrollModel->hasCompleted($learner_id, $course['prerequisite_id'])) {
                 $needed = $this->courseModel->getCourseById($course['prerequisite_id']);
                 $neededTitle = $needed['title'];
-                echo "<script>
-                    alert('⛔ PREREQUISITE MISSING!\\n\\nYou cannot enroll in this ' + '{$course['difficulty']}' + ' course yet.\\nYou must first complete: $neededTitle'); 
-                    window.location.href='" . BASE_URL . "learner/courses';
-                </script>";
+                echo "<script>alert('⛔ PREREQUISITE MISSING!'); window.location.href='" . BASE_URL . "learner/courses';</script>";
                 exit;
             }
         }
-
         if ($this->requestModel->hasPendingRequest($learner_id, $course_id)) {
-             echo "<script>alert('⏳ You have already requested a seat. Please wait for instructor approval.'); window.location.href='" . BASE_URL . "learner/courses';</script>";
+             echo "<script>alert('⏳ Already requested.'); window.location.href='" . BASE_URL . "learner/courses';</script>";
              exit;
         }
-
         $currentCount = $this->enrollModel->countEnrollments($course_id);
         $max = $course['max_capacity'];
         $reserved = $course['reserved_seats'];
         $public_limit = $max - $reserved;
-
         if ($currentCount >= $max) {
-            echo "<script>alert('⛔️ Course is completely FULL.'); window.location.href='" . BASE_URL . "learner/courses';</script>";
+            echo "<script>alert('⛔️ Course FULL.'); window.location.href='" . BASE_URL . "learner/courses';</script>";
             exit;
         } elseif ($currentCount >= $public_limit) {
             $this->requestReservedSeat($learner_id, $course_id);
@@ -109,117 +177,21 @@ class LearnerController {
 
     private function requestReservedSeat($learner_id, $course_id) {
         if ($this->requestModel->createRequest($learner_id, $course_id)) {
-            echo "<script>
-                alert('⚠️ Public seats are full! A request for a RESERVED SEAT has been sent to the instructor.'); 
-                window.location.href='" . BASE_URL . "learner/courses';
-            </script>";
+            echo "<script>alert('⚠️ Request Sent.'); window.location.href='" . BASE_URL . "learner/courses';</script>";
         } else {
             die("Error sending request.");
         }
     }
 
-    public function jobs() {
-        $allJobs = $this->jobModel->getAllJobs();
-        $availableJobs = [];
-        
-        foreach ($allJobs as $job) {
-            // Filter: If already applied, SKIP
-            if ($this->jobAppModel->alreadyApplied($job['id'], $_SESSION['user_id'])) {
-                continue; 
-            }
-
-            if (!empty($job['required_course_id'])) {
-                $job['is_unlocked'] = $this->progressModel->isCourseCompleted($job['required_course_id'], $_SESSION['user_id']);
-            } else {
-                $job['is_unlocked'] = true;
-            }
-            
-            $availableJobs[] = $job;
-        }
-    
-        $this->loadView('learner/jobs', ['allJobs' => $availableJobs]);
-    }
-
-    public function apply($job_id) {
-        $learner_id = $_SESSION['user_id'];
-        if (!$this->jobAppModel->alreadyApplied($job_id, $learner_id)) {
-            $this->jobAppModel->apply($job_id, $learner_id, null);
-        }
-        header('Location: ' . BASE_URL . 'dashboard/index');
-        exit;
-    }
-
-    // =========================================================
-    // FIX: UPDATED APPLY FORM LOGIC
-    // =========================================================
-    public function applyForm($job_id) {
-        // 1. Get the existing application record
-        $existingApp = $this->jobAppModel->alreadyApplied($job_id, $_SESSION['user_id']);
-
-        // 2. Logic Check:
-        // If application exists AND status is NOT 'invited', then show the "Already Applied" message.
-        // If the status IS 'invited', this block is skipped, and the form loads!
-        if ($existingApp && $existingApp['status'] !== 'invited') {
-             // Try to load the nice view file first
-             $viewFile = "../app/views/learner/alreadyApplied.php";
-             if (file_exists($viewFile)) {
-                 require_once $viewFile;
-             } else {
-                 // Fallback to inline HTML if file missing
-                 echo "<div style='text-align:center; padding:50px; font-family: sans-serif;'>
-                        <h2 style='color:green;'>✅ You have already applied for this job!</h2>
-                        <p>You cannot apply twice.</p>
-                        <a href='" . BASE_URL . "dashboard/index' style='background:#2ecc71; color:white; padding:10px 20px; text-decoration:none;'>Go to Dashboard</a>
-                      </div>";
-             }
-             exit;
-        }
-
-        // 3. Load the form (This now runs for New Applicants AND Invited Users)
-        $job = $this->jobModel->getJobById($job_id);
-        
-        // Try to load the nice view file first
-        $viewFile = "../app/views/learner/applyForm.php";
-        if (file_exists($viewFile)) {
-            require_once $viewFile;
-        } else {
-            // Fallback to your old view name if the new one isn't there
-            $this->loadView('learner/apply_job', ['job' => $job]);
-        }
-    }
-
-    public function submitApplication() {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['cv'])) {
-            $job_id = $_POST['job_id'];
-            $upload_dir = "../public/uploads/cvs/";
-            if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
-            
-            $ext = strtolower(pathinfo($_FILES['cv']['name'], PATHINFO_EXTENSION));
-            if ($ext != 'pdf') { die("Only PDF CVs allowed."); }
-
-            $filename = "cv_" . $_SESSION['user_id'] . "_" . time() . ".pdf";
-            
-            if (move_uploaded_file($_FILES['cv']['tmp_name'], $upload_dir . $filename)) {
-                $this->jobAppModel->apply($job_id, $_SESSION['user_id'], $filename);
-                header('Location: ' . BASE_URL . 'dashboard/index');
-                exit;
-            }
-        }
-        die("Application failed.");
-    }
-
     public function search() {
         $keyword = isset($_GET['query']) ? trim($_GET['query']) : '';
-        
         if ($keyword === '') {
             $allCourses = $this->courseModel->getAllCourses();
         } else {
             $allCourses = $this->courseModel->searchCourses($keyword);
         }
-
         $myCourses = $this->enrollModel->getLearnerCourses($_SESSION['user_id']);
         $enrolledIds = array_column($myCourses, 'id');
-
         $availableCourses = [];
         if (!empty($allCourses)) {
             foreach($allCourses as $course) {
@@ -228,7 +200,6 @@ class LearnerController {
                 }
             }
         }
-
         header('Content-Type: application/json');
         echo json_encode($availableCourses);
         exit;
@@ -238,12 +209,10 @@ class LearnerController {
         $rawTasks = $this->progressModel->getTasksByCourse($course_id, $_SESSION['user_id']);
         $materials = $this->courseModel->getMaterials($course_id);
         $checkedIDs = $this->progressModel->getCheckedMaterials($_SESSION['user_id'], $course_id);
-        
         $is_empty = (empty($rawTasks) && empty($materials));
         $has_quiz = $this->quizModel->hasQuiz($course_id);
         $allFinished = (!$is_empty) ? $this->progressModel->checkPrerequisites($course_id, $_SESSION['user_id']) : false;
         $is_completed = $this->enrollModel->hasCompleted($_SESSION['user_id'], $course_id);
-
         $processedTasks = [];
         foreach ($rawTasks as $task) {
             if ($task['status'] == 'approved') {
@@ -265,7 +234,6 @@ class LearnerController {
             }
             $processedTasks[] = $task;
         }
-
         $this->loadView('learner/progress', [
             'course' => $this->courseModel->getCourseById($course_id),
             'materials' => $materials,
@@ -284,7 +252,6 @@ class LearnerController {
             $upload_dir = "../public/uploads/tasks/";
             if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
             $file_name = time() . "_" . $_FILES['task_file']['name'];
-            
             if (move_uploaded_file($_FILES['task_file']['tmp_name'], $upload_dir . $file_name)) {
                 $this->progressModel->submitTask($_SESSION['user_id'], $_POST['task_id'], $file_name);
                 header('Location: ' . $_SERVER['HTTP_REFERER']);
@@ -310,10 +277,7 @@ class LearnerController {
 
     public function takeQuiz($course_id) {
         if (!$this->quizModel->hasQuiz($course_id)) {
-            echo "<script>
-                alert('⚠️ This course does not have a quiz yet.'); 
-                window.history.back();
-            </script>";
+            echo "<script>alert('⚠️ No quiz.'); window.history.back();</script>";
             exit;
         }
         $questions = $this->quizModel->getQuizQuestions($course_id);
@@ -337,7 +301,6 @@ class LearnerController {
         $course = $this->courseModel->getCourseById($course_id);
         $materials = $this->courseModel->getMaterials($course_id);
         $tasks = $this->progressModel->getTasksByCourse($course_id, $_SESSION['user_id']);
-    
         $this->loadView('learner/course_view', [
             'course' => $course,
             'materials' => $materials,
@@ -352,7 +315,6 @@ class LearnerController {
             include $viewFile;
         } else {
             http_response_code(404);
-            // Fallback if error view doesn't exist
             if (file_exists('../app/views/errors/404.php')) {
                 include '../app/views/errors/404.php';
             } else {

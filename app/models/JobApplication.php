@@ -10,21 +10,22 @@ class JobApplication {
     }
 
     // =========================================================
-    // FIX: SMART APPLY (Handles Invitations)
+    // SMART APPLY: UPDATE if invited, INSERT if new
     // =========================================================
     public function apply($job_id, $learner_id, $cv_file) {
-        // 1. Check if there is an existing row (like an invitation)
+        // 1. Check existing record
         $existing = $this->alreadyApplied($job_id, $learner_id);
 
         if ($existing) {
-            // If they were invited, we UPDATE the existing row
-            // We change status from 'invited' to 'applied' and add the CV
+            // SCENARIO 1: INVITED USER APPLIES
+            // We UPDATE the existing row: Add CV and change status to 'applied'
             $query = "UPDATE job_applications SET cv_file = ?, status = 'applied' WHERE id = ?";
             $stmt = $this->connection->prepare($query);
             $stmt->bind_param("si", $cv_file, $existing['id']);
             return $stmt->execute();
         } else {
-            // 2. If no row exists, we INSERT a new one
+            // SCENARIO 2: NEW APPLICANT
+            // We INSERT a new row
             $status = 'applied';
             $query = "INSERT INTO job_applications (job_id, learner_id, cv_file, status) VALUES (?, ?, ?, ?)";
             $stmt = $this->connection->prepare($query);
@@ -47,7 +48,6 @@ class JobApplication {
     }
 
     public function alreadyApplied($job_id, $learner_id) {
-        // We select * so we can check the 'status' column later
         $query = "SELECT * FROM job_applications WHERE job_id = ? AND learner_id = ?";
         $stmt = $this->connection->prepare($query);
         $stmt->bind_param("ii", $job_id, $learner_id);
