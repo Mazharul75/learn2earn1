@@ -1,22 +1,19 @@
 <?php require_once __DIR__ . '/../layouts/header.php'; ?>
 
     <style>
-        /* Feedback Text */
         .feedback { 
             font-size: 0.85em; margin-top: 5px; margin-bottom: 10px; display: block; min-height: 1.2em; 
         }
         .success { color: #27ae60; font-weight: bold; }
         .error { color: #e74c3c; font-weight: bold; }
         
-        /* Strength Bar */
         #strength-bar { 
             height: 4px; width: 0%; transition: width 0.3s, background 0.3s; border-radius: 3px; margin-top: 5px; margin-bottom: 5px; 
         }
         .weak { width: 33%; background: #e74c3c; }
         .medium { width: 66%; background: #f39c12; }
         .strong { width: 100%; background: #27ae60; }
-        
-        /* Admin Badge */
+
         #admin-badge {
             background: #e8f8f5; padding: 15px; border: 1px solid #2ecc71; border-radius: 5px; margin-bottom: 20px; text-align: center;
         }
@@ -91,7 +88,6 @@
 
         let emailTimer;
 
-        // --- EMAIL CHECK + ADMIN DETECTION ---
         emailInput.addEventListener('input', function() {
             emailFeedback.textContent = ''; 
             emailFeedback.className = 'feedback';
@@ -142,7 +138,6 @@
             }, 500);
         });
 
-        // --- PASSWORD STRENGTH METER ---
         passInput.addEventListener('keyup', function() {
             let val = this.value;
             let strength = 0;
@@ -174,7 +169,6 @@
             }
         });
 
-        // --- SUBMIT VALIDATION ---
         regForm.addEventListener('submit', function(e) {
             let isValid = true;
             nameFeedback.textContent = '';
