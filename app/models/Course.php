@@ -15,7 +15,6 @@ class Course {
         
         $stmt = $this->connection->prepare($query);
         
-        // ssssiis -> string, string, string, string, int, int, string/int (null is handled)
         $stmt->bind_param("isssiii", 
             $_SESSION['user_id'], 
             $data['title'], 
@@ -29,7 +28,7 @@ class Course {
         return $stmt->execute();
     }
 
-    // Logic Helper (kept from previous improvements)
+    // Logic Helper 
     private function prepareForDisplay($courses) {
         $processed = [];
         $isSingle = isset($courses['id']);
