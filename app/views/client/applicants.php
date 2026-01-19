@@ -76,7 +76,6 @@
     </div>
 
     <?php 
-        // Get all learner_ids that have applied OR been invited
         $existing_ids = [];
         if (!empty($applicants)) {
             foreach($applicants as $app) {
@@ -153,15 +152,13 @@
 
                 for (var i = 0; i < data.length; i++) {
                     var app = data[i];
-                    
-                    // Logic for Status Badge
+
                     var statusBadge = '';
                     if(app.status == 'selected') statusBadge = '<span style="background: #d4edda; color: #155724; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">Selected</span>';
                     else if(app.status == 'rejected') statusBadge = '<span style="background: #f8d7da; color: #721c24; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">Rejected</span>';
                     else if(app.status == 'invited') statusBadge = '<span style="background: #e2e8f0; color: #4a5568; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">Invited</span>';
                     else statusBadge = '<span style="background: #fff3cd; color: #856404; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">Applied</span>';
 
-                    // Logic for Buttons
                     var actionButtons = '';
                     if(app.status == 'applied') {
                         actionButtons = `<a href="<?= BASE_URL ?>client/updateApplication/${app.app_id}/selected" class="btn" style="padding: 6px 12px; font-size: 0.85rem; background: #27ae60; text-decoration: none;">Hire</a> ` +
@@ -170,7 +167,6 @@
                         actionButtons = '<span style="color: #7f8c8d; font-style: italic;">Decision Made</span>';
                     }
 
-                    // CV Link Logic
                     var cvLink = app.cv_file ? `<a href="<?= BASE_URL ?>public/uploads/cvs/${app.cv_file}" target="_blank" style="text-decoration: none; color: #e74c3c; font-weight: bold;">📥 Download PDF</a>` : '<span style="color: #999;">No CV</span>';
 
                     var row = `<tr style="border-bottom: 1px solid #eee;">
