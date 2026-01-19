@@ -28,7 +28,7 @@ class Quiz {
             $quiz_id = $this->connection->insert_id;
         }
 
-        // 2. Add Question
+        // 2. add questions
         $correct = strtoupper($data['correct_option']);
         $query = "INSERT INTO questions (quiz_id, question_text, option_a, option_b, option_c, option_d, correct_option) 
                   VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -56,7 +56,7 @@ class Quiz {
     }
 
     public function gradeQuiz($course_id, $answers) {
-        // Fetch Correct Answers
+        // getting correct answers n
         $query = "SELECT id, correct_option FROM questions WHERE quiz_id = (SELECT id FROM quizzes WHERE course_id = ?)";
         $stmt = $this->connection->prepare($query);
         $stmt->bind_param("i", $course_id);
