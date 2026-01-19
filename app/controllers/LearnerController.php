@@ -45,26 +45,14 @@ class LearnerController {
             'notifications' => $notifications
         ]);
     }
-
-    // =========================================================
-    // THE FIX: This function is now HARMLESS.
-    // It does NOT write to the database. It only redirects.
-    // =========================================================
     public function apply($job_id) {
-        // DELETE THE DATABASE CODE THAT WAS HERE.
-        // Redirect straight to the form.
         header('Location: ' . BASE_URL . 'learner/applyForm/' . $job_id);
         exit;
     }
 
-    // =========================================================
-    // FIX 2: Allow "Invited" users to see the form
-    // =========================================================
     public function applyForm($job_id) {
         $existingApp = $this->jobAppModel->alreadyApplied($job_id, $_SESSION['user_id']);
 
-        // IF they exist AND status is NOT invited, kick them out.
-        // We use strtolower to handle 'Invited' vs 'invited' mismatch.
         if ($existingApp && strtolower($existingApp['status']) !== 'invited') {
              
              // Check if view exists
@@ -73,7 +61,7 @@ class LearnerController {
                  require_once $viewFile;
              } else {
                  echo "<div style='text-align:center; padding:50px;'>
-                        <h2 style='color:green;'>✅ You have already applied!</h2>
+                        <h2 style='color:green;'>You have already applied!</h2>
                         <a href='" . BASE_URL . "dashboard/index'>Go Dashboard</a>
                       </div>";
              }
@@ -91,7 +79,6 @@ class LearnerController {
         }
     }
 
-    // ... (Keep the rest of the functions exactly as they are) ...
     public function submitApplication() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['cv'])) {
             $job_id = $_POST['job_id'];
@@ -177,7 +164,7 @@ class LearnerController {
 
     private function requestReservedSeat($learner_id, $course_id) {
         if ($this->requestModel->createRequest($learner_id, $course_id)) {
-            echo "<script>alert('⚠️ Request Sent.'); window.location.href='" . BASE_URL . "learner/courses';</script>";
+            echo "<script>alert('Request Sent.'); window.location.href='" . BASE_URL . "learner/courses';</script>";
         } else {
             die("Error sending request.");
         }
@@ -277,7 +264,7 @@ class LearnerController {
 
     public function takeQuiz($course_id) {
         if (!$this->quizModel->hasQuiz($course_id)) {
-            echo "<script>alert('⚠️ No quiz.'); window.history.back();</script>";
+            echo "<script>alert('No quiz.'); window.history.back();</script>";
             exit;
         }
         $questions = $this->quizModel->getQuizQuestions($course_id);
