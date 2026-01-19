@@ -2,6 +2,7 @@
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2>Applicants for: <span style="color: #e74c3c;"><?= $job['title']; ?></span></h2>
+        <a href="<?= BASE_URL ?>client/index" class="btn btn-secondary">← Go Back</a>
     </div>
 
     <h3 style="border-bottom: 2px solid #eee; padding-bottom: 10px;">1. Direct Applicants</h3>
@@ -46,6 +47,8 @@
                             <span style="background: #d4edda; color: #155724; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">Selected</span>
                         <?php elseif($app['status'] == 'rejected'): ?>
                             <span style="background: #f8d7da; color: #721c24; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">Rejected</span>
+                        <?php elseif($app['status'] == 'invited'): ?>
+                            <span style="background: #e2e8f0; color: #4a5568; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">Invited</span>
                         <?php else: ?>
                             <span style="background: #fff3cd; color: #856404; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">Applied</span>
                         <?php endif; ?>
@@ -72,6 +75,18 @@
         </table>
     </div>
 
+    <?php 
+        // Get all learner_ids that have applied OR been invited
+        $existing_ids = [];
+        if (!empty($applicants)) {
+            foreach($applicants as $app) {
+                if (isset($app['learner_id'])) {
+                    $existing_ids[] = $app['learner_id'];
+                }
+            }
+        }
+    ?>
+
     <h3 style="border-bottom: 2px solid #eee; padding-bottom: 10px;">2. 🌟 Instructor Recommendations</h3>
     <div style="background: #fff8e1; border-left: 4px solid #ffc107; padding: 15px; margin-bottom: 20px;">
         <p style="margin: 0; color: #b7791f;">Instructors have vetted these students as top performers for your requirements.</p>
@@ -97,23 +112,14 @@
                     <td style="padding: 15px; color: #555;">
                         Instructor: <strong><?= $rec['instructor_name'] ?></strong>
                     </td>
+                    
                     <td style="padding: 15px; text-align: center;">
-                        <?php 
-                            $alreadyApplied = false;
-                            foreach($applicants as $app) {
-                                if((isset($app['learner_id']) && $app['learner_id'] == $rec['learner_id']) || ($app['email'] == $rec['learner_email'])) {
-                                    $alreadyApplied = true;
-                                    break;
-                                }
-                            }
-                        ?>
-
-                        <?php if($alreadyApplied): ?>
-                            <span style="background: #eee; color: #7f8c8d; padding: 5px 10px; border-radius: 4px; font-size: 0.85rem;">
-                                Already Applied
-                            </span>
+                        <?php if (in_array($rec['learner_id'], $existing_ids)): ?>
+                            <button disabled style="background: #bdc3c7; color: #fff; border:none; padding: 6px 12px; border-radius: 4px; cursor: not-allowed; font-size: 0.85rem;">
+                                ✔ Already Invited
+                            </button>
                         <?php else: ?>
-                            <a href="<?= BASE_URL ?>client/inviteLearner/<?= $rec['learner_id'] ?>/<?= $job['id'] ?>" class="btn" style="background: #e67e22; text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
+                            <a href="<?= BASE_URL ?>client/inviteLearner/<?= $rec['learner_id'] ?>/<?= $job['id'] ?>" class="btn" style="background: #e67e22; color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-size: 0.85rem;">
                                 📩 Invite to Apply
                             </a>
                         <?php endif; ?>
@@ -152,6 +158,7 @@
                     var statusBadge = '';
                     if(app.status == 'selected') statusBadge = '<span style="background: #d4edda; color: #155724; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">Selected</span>';
                     else if(app.status == 'rejected') statusBadge = '<span style="background: #f8d7da; color: #721c24; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">Rejected</span>';
+                    else if(app.status == 'invited') statusBadge = '<span style="background: #e2e8f0; color: #4a5568; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">Invited</span>';
                     else statusBadge = '<span style="background: #fff3cd; color: #856404; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">Applied</span>';
 
                     // Logic for Buttons
@@ -167,12 +174,12 @@
                     var cvLink = app.cv_file ? `<a href="<?= BASE_URL ?>public/uploads/cvs/${app.cv_file}" target="_blank" style="text-decoration: none; color: #e74c3c; font-weight: bold;">📥 Download PDF</a>` : '<span style="color: #999;">No CV</span>';
 
                     var row = `<tr style="border-bottom: 1px solid #eee;">
-                                <td style="padding: 15px; font-weight: 500;">${app.name}</td>
-                                <td style="padding: 15px; color: #666;">${app.email}</td>
-                                <td style="padding: 15px;">${cvLink}</td>
-                                <td style="padding: 15px;">${statusBadge}</td>
-                                <td style="padding: 15px; text-align: center;">${actionButtons}</td>
-                               </tr>`;
+                                    <td style="padding: 15px; font-weight: 500;">${app.name}</td>
+                                    <td style="padding: 15px; color: #666;">${app.email}</td>
+                                    <td style="padding: 15px;">${cvLink}</td>
+                                    <td style="padding: 15px;">${statusBadge}</td>
+                                    <td style="padding: 15px; text-align: center;">${actionButtons}</td>
+                                   </tr>`;
                     tbody.innerHTML += row;
                 }
             }
