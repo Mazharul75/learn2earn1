@@ -35,7 +35,7 @@ class Progress {
     }
 
     public function checkPrerequisites($course_id, $learner_id) {
-        // 1. Materials
+        // 1. Materials are here 
         $q1 = "SELECT COUNT(*) as total FROM materials WHERE course_id = ?";
         $stmt1 = $this->connection->prepare($q1);
         $stmt1->bind_param("i", $course_id);
@@ -49,7 +49,7 @@ class Progress {
         $stmt2->execute();
         $matDone = $stmt2->get_result()->fetch_assoc()['completed'];
 
-        // 2. Tasks
+        // 2. tasks are here 
         $q3 = "SELECT COUNT(*) as total FROM course_tasks WHERE course_id = ?";
         $stmt3 = $this->connection->prepare($q3);
         $stmt3->bind_param("i", $course_id);
