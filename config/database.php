@@ -1,10 +1,9 @@
 <?php
 class Database {
-    // FIX: Hardcode the values here. Do NOT use DB_HOST.
     private $host = 'localhost';
     private $user = 'root';
-    private $pass = '';      // Default XAMPP password is empty
-    private $dbname = 'learn2earn'; // Your Database Name
+    private $pass = '';
+    private $dbname = 'learn2earn'; 
     
     private $connection;
 
