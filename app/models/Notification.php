@@ -46,12 +46,5 @@ class Notification {
         return $result->fetch_all(MYSQLI_ASSOC);
     }
     
-
-    public function markAsRead($id) {
-        $conn = $this->db->getConnection();
-        $stmt = $conn->prepare("UPDATE notifications SET is_read = 1 WHERE id = ?");
-        $stmt->bind_param("i", $id);
-        return $stmt->execute();
-    }
 }
 ?>

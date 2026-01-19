@@ -248,13 +248,6 @@ class LearnerController {
         die("Upload failed.");
     }
 
-    public function completeTask($task_id) {
-        if ($this->progressModel->markTaskDone($task_id, $_SESSION['user_id'])) {
-            header('Location: ' . $_SERVER['HTTP_REFERER']);
-            exit;
-        }
-    }
-
     public function checkout($course_id, $material_id) {
         if ($this->progressModel->checkoutMaterial($_SESSION['user_id'], $material_id)) {
             header('Location: ' . BASE_URL . 'learner/progress/' . $course_id);
