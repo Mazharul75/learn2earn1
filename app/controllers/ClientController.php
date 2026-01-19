@@ -63,9 +63,9 @@ class ClientController {
     }
 
     public function inviteLearner($learner_id, $job_id) {
-        // 1. Check if already applied/invited (Safety Check)
+        // 1. Check if already applied/invited 
         if ($this->jobAppModel->alreadyApplied($job_id, $learner_id)) {
-             echo "<script>alert('⚠️ Already invited or applied.'); window.location.href='" . $_SERVER['HTTP_REFERER'] . "';</script>";
+             echo "<script>alert('Already invited or applied.'); window.location.href='" . $_SERVER['HTTP_REFERER'] . "';</script>";
              return;
         }
 
@@ -77,7 +77,7 @@ class ClientController {
         $this->notifyModel->create($learner_id, "Invited to apply for: " . $job['title'], BASE_URL . "learner/applyForm/" . $job_id);
 
         // 4. Success
-        echo "<script>alert('✅ Invitation sent!'); window.location.href='" . $_SERVER['HTTP_REFERER'] . "';</script>";
+        echo "<script>alert('Invitation sent!'); window.location.href='" . $_SERVER['HTTP_REFERER'] . "';</script>";
     }
 
     public function select($app_id) {
