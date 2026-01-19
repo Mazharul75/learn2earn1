@@ -41,7 +41,7 @@ class CourseRequest {
     }
 
     public function approveRequest($request_id) {
-        // 1. Get info
+        // get infos
         $q1 = "SELECT * FROM course_requests WHERE id = ?";
         $stmt1 = $this->connection->prepare($q1);
         $stmt1->bind_param("i", $request_id);
