@@ -38,9 +38,7 @@ class LearnerController {
         $this->requestModel = new CourseRequest();
     }
 
-    // --- RESTORED METHOD: INDEX (Dashboard Logic) ---
     public function index() {
-        // This duplicates DashboardController logic, but if your original code had it, we keep it!
         $myCourses = $this->enrollModel->getLearnerCourses($_SESSION['user_id']);
         $myJobs = $this->jobAppModel->getLearnerApplications($_SESSION['user_id']);
         $notifications = $this->notifyModel->getUnread($_SESSION['user_id']);
@@ -69,13 +67,11 @@ class LearnerController {
     public function enroll($course_id) {
         $learner_id = $_SESSION['user_id'];
         
-        // 1. Check if already enrolled
         if ($this->enrollModel->isEnrolled($learner_id, $course_id)) {
             echo "<script>alert('You are already enrolled!'); window.location.href='" . BASE_URL . "learner/courses';</script>";
             exit;
         }
 
-        // 2. PREREQUISITE CHECK
         $course = $this->courseModel->getCourseById($course_id);
         if (!empty($course['prerequisite_id'])) {
             if (!$this->enrollModel->hasCompleted($learner_id, $course['prerequisite_id'])) {
@@ -89,13 +85,11 @@ class LearnerController {
             }
         }
 
-        // 3. Check Pending Requests
         if ($this->requestModel->hasPendingRequest($learner_id, $course_id)) {
              echo "<script>alert('⏳ You have already requested a seat. Please wait for instructor approval.'); window.location.href='" . BASE_URL . "learner/courses';</script>";
              exit;
         }
 
-        // 4. SEAT LOGIC
         $currentCount = $this->enrollModel->countEnrollments($course_id);
         $max = $course['max_capacity'];
         $reserved = $course['reserved_seats'];
@@ -105,7 +99,6 @@ class LearnerController {
             echo "<script>alert('⛔️ Course is completely FULL.'); window.location.href='" . BASE_URL . "learner/courses';</script>";
             exit;
         } elseif ($currentCount >= $public_limit) {
-            // CALL THE HELPER METHOD (Restored)
             $this->requestReservedSeat($learner_id, $course_id);
         } else {
             $this->enrollModel->enroll($learner_id, $course_id);
@@ -114,7 +107,6 @@ class LearnerController {
         }
     }
 
-    // --- RESTORED METHOD: HELPER FOR SEATS ---
     private function requestReservedSeat($learner_id, $course_id) {
         if ($this->requestModel->createRequest($learner_id, $course_id)) {
             echo "<script>
@@ -136,7 +128,6 @@ class LearnerController {
                 continue; 
             }
 
-            // Check Lock Status
             if (!empty($job['required_course_id'])) {
                 $job['is_unlocked'] = $this->progressModel->isCourseCompleted($job['required_course_id'], $_SESSION['user_id']);
             } else {
@@ -149,30 +140,52 @@ class LearnerController {
         $this->loadView('learner/jobs', ['allJobs' => $availableJobs]);
     }
 
-    // --- RESTORED METHOD: APPLY (Simple) ---
     public function apply($job_id) {
         $learner_id = $_SESSION['user_id'];
         if (!$this->jobAppModel->alreadyApplied($job_id, $learner_id)) {
-            // Note: This applies without a CV file (null). 
-            // If your logic STRICTLY requires a CV, use applyForm/submitApplication instead.
-            // But I am keeping this because it was in your original code.
             $this->jobAppModel->apply($job_id, $learner_id, null);
         }
         header('Location: ' . BASE_URL . 'dashboard/index');
         exit;
     }
 
+    // =========================================================
+    // FIX: UPDATED APPLY FORM LOGIC
+    // =========================================================
     public function applyForm($job_id) {
-        if ($this->jobAppModel->alreadyApplied($job_id, $_SESSION['user_id'])) {
-            echo "<div style='text-align:center; padding:50px; font-family: sans-serif;'>
-                    <h2 style='color:green;'>✅ You have already applied for this job!</h2>
-                    <p>You cannot apply twice.</p>
-                    <a href='" . BASE_URL . "dashboard/index' style='background:#2ecc71; color:white; padding:10px 20px; text-decoration:none;'>Go to Dashboard</a>
-                  </div>";
-            exit;
+        // 1. Get the existing application record
+        $existingApp = $this->jobAppModel->alreadyApplied($job_id, $_SESSION['user_id']);
+
+        // 2. Logic Check:
+        // If application exists AND status is NOT 'invited', then show the "Already Applied" message.
+        // If the status IS 'invited', this block is skipped, and the form loads!
+        if ($existingApp && $existingApp['status'] !== 'invited') {
+             // Try to load the nice view file first
+             $viewFile = "../app/views/learner/alreadyApplied.php";
+             if (file_exists($viewFile)) {
+                 require_once $viewFile;
+             } else {
+                 // Fallback to inline HTML if file missing
+                 echo "<div style='text-align:center; padding:50px; font-family: sans-serif;'>
+                        <h2 style='color:green;'>✅ You have already applied for this job!</h2>
+                        <p>You cannot apply twice.</p>
+                        <a href='" . BASE_URL . "dashboard/index' style='background:#2ecc71; color:white; padding:10px 20px; text-decoration:none;'>Go to Dashboard</a>
+                      </div>";
+             }
+             exit;
         }
+
+        // 3. Load the form (This now runs for New Applicants AND Invited Users)
         $job = $this->jobModel->getJobById($job_id);
-        $this->loadView('learner/apply_job', ['job' => $job]);
+        
+        // Try to load the nice view file first
+        $viewFile = "../app/views/learner/applyForm.php";
+        if (file_exists($viewFile)) {
+            require_once $viewFile;
+        } else {
+            // Fallback to your old view name if the new one isn't there
+            $this->loadView('learner/apply_job', ['job' => $job]);
+        }
     }
 
     public function submitApplication() {
@@ -281,9 +294,7 @@ class LearnerController {
         die("Upload failed.");
     }
 
-    // --- RESTORED METHOD: COMPLETE TASK (No Upload) ---
     public function completeTask($task_id) {
-        // This is for tasks that don't require files, just a "Done" button
         if ($this->progressModel->markTaskDone($task_id, $_SESSION['user_id'])) {
             header('Location: ' . $_SERVER['HTTP_REFERER']);
             exit;
@@ -322,9 +333,7 @@ class LearnerController {
         ]);
     }
 
-    // --- RESTORED METHOD: VIEW COURSE (Duplicate but kept for safety) ---
     public function viewCourse($course_id) {
-        // This existed in your old code dump, mapping to learner/course_view.php
         $course = $this->courseModel->getCourseById($course_id);
         $materials = $this->courseModel->getMaterials($course_id);
         $tasks = $this->progressModel->getTasksByCourse($course_id, $_SESSION['user_id']);
@@ -343,7 +352,12 @@ class LearnerController {
             include $viewFile;
         } else {
             http_response_code(404);
-            include '../app/views/errors/404.php';
+            // Fallback if error view doesn't exist
+            if (file_exists('../app/views/errors/404.php')) {
+                include '../app/views/errors/404.php';
+            } else {
+                echo "<h1>404 - View Not Found</h1>";
+            }
             exit;
         }
     }
