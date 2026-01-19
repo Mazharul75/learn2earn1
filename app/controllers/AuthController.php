@@ -93,11 +93,24 @@ class AuthController {
             $data = json_decode($json, true);
             $email = trim($data['email'] ?? '');
             
-            if ($this->userModel->findUserByEmail($email)) {
+            // 1. Check if Empty
+            if (empty($email)) {
+                echo json_encode(['status' => 'taken', 'message' => '❌ Email cannot be empty']);
+            } 
+            // 2. Check Format (Force 'taken' status so frontend shows Red Error)
+            elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                echo json_encode(['status' => 'taken', 'message' => '❌ Invalid email format']);
+            } 
+            // 3. Check if Registered
+            elseif ($this->userModel->findUserByEmail($email)) {
                 echo json_encode(['status' => 'taken', 'message' => '❌ Email is already registered']);
-            } elseif ($this->adminModel->isInvited($email)) {
-                echo json_encode(['status' => 'available', 'message' => '✅ Email available', 'is_admin_invite' => true]);
-            } else {
+            } 
+            // 4. Check Admin Invite
+            elseif ($this->adminModel->isInvited($email)) {
+                echo json_encode(['status' => 'available', 'message' => '✅ Email available (Admin Invite)', 'is_admin_invite' => true]);
+            } 
+            // 5. Available
+            else {
                 echo json_encode(['status' => 'available', 'message' => '✅ Email available', 'is_admin_invite' => false]);
             }
             exit;
