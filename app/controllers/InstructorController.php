@@ -53,7 +53,7 @@ class InstructorController {
                 $courses = $this->courseModel->getCourseList();
                 $this->loadView('instructor/create_course', [
                     'courses' => $courses, 
-                    'error' => '⚠️ Intermediate and Advanced courses MUST have a Prerequisite course selected.'
+                    'error' => 'Intermediate and Advanced courses MUST have a Prerequisite course selected.'
                 ]);
                 return;
             }
@@ -167,7 +167,7 @@ class InstructorController {
             $req = $this->requestModel->approveRequest($request_id);
             if ($req) {
                 $this->enrollModel->enroll($req['learner_id'], $req['course_id']);
-                $this->notifyModel->create($req['learner_id'], "🎉 Request Approved!", BASE_URL . "learner/progress/" . $req['course_id']);
+                $this->notifyModel->create($req['learner_id'], "Request Approved!", BASE_URL . "learner/progress/" . $req['course_id']);
                 echo "<script>alert('Approved!'); window.location.href='" . BASE_URL . "instructor/requests';</script>";
             }
         } elseif ($action == 'reject') {
