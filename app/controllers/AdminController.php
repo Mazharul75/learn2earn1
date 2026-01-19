@@ -21,22 +21,22 @@ class AdminController {
             $email = trim($_POST['email'] ?? '');
             
             if (empty($email)) {
-                 echo "<script>alert('❌ Email cannot be empty'); window.location.href='" . BASE_URL . "admin/dashboard';</script>";
+                 echo "<script>alert('Email cannot be empty'); window.location.href='" . BASE_URL . "admin/dashboard';</script>";
                  return;
             }
 
             if ($this->adminModel->isInvited($email)) {
-                echo "<script>alert('⚠️ Already invited!'); window.location.href='" . BASE_URL . "admin/dashboard';</script>";
+                echo "<script>alert('Already invited!'); window.location.href='" . BASE_URL . "admin/dashboard';</script>";
                 return;
             }
             $this->adminModel->inviteAdmin($email, $_SESSION['user_id']);
-            echo "<script>alert('✅ Invitation Sent!'); window.location.href='" . BASE_URL . "admin/dashboard';</script>";
+            echo "<script>alert('Invitation Sent!'); window.location.href='" . BASE_URL . "admin/dashboard';</script>";
         }
     }
 
     public function deleteUser($id) {
         if ($id == $_SESSION['user_id']) {
-            echo "<script>alert('⛔️ Cannot delete yourself!'); window.location.href='" . BASE_URL . "admin/dashboard';</script>";
+            echo "<script>alert('Cannot delete yourself!'); window.location.href='" . BASE_URL . "admin/dashboard';</script>";
             exit;
         }
         $this->adminModel->deleteUser($id);
