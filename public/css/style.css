@@ -23,20 +23,19 @@ body {
     background: var(--light-bg);
     color: #333;
     margin: 0;
-    padding: 0; /* Changed to 0 so header touches edges */
+    padding: 0; 
     line-height: 1.6;
 }
 
-/* --- 2. LAYOUT CONTAINER --- */
-/* This centers your page content nicely */
+
 .main-container {
     max-width: 1100px;
     margin: 40px auto;
     padding: 0 20px;
-    min-height: 70vh; /* Keeps footer at bottom */
+    min-height: 70vh; 
 }
 
-/* --- 3. TYPOGRAPHY --- */
+
 h1, h2, h3 {
     color: var(--dark-bg);
     margin-bottom: 1rem;
@@ -59,8 +58,7 @@ a {
 }
 a:hover { color: var(--primary-dark); text-decoration: underline; }
 
-/* --- 4. NAVIGATION BAR (OLD / GENERAL) --- */
-/* This applies to navs NOT in the header */
+
 nav:not(.header-nav) {
     background: var(--dark-bg);
     padding: 1rem 1.5rem;
@@ -89,7 +87,7 @@ nav:not(.header-nav) a:hover {
     transform: translateY(-2px);
 }
 
-/* --- 5. BUTTONS --- */
+
 .btn, button {
     display: inline-block;
     padding: 10px 20px;
