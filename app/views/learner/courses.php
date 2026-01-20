@@ -69,7 +69,7 @@
         var query = document.getElementById('courseSearch').value;
         var url = '<?= BASE_URL ?>learner/search?query=' + query;
 
-        // 1. Create the XHR Object (The "Old School" Way)
+        
         var xhr = new XMLHttpRequest();
 
         // 2. Define what happens when the server responds
