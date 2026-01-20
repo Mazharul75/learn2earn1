@@ -53,7 +53,15 @@ class InstructorController {
                 $courses = $this->courseModel->getCourseList();
                 $this->loadView('instructor/create_course', [
                     'courses' => $courses, 
-                    'error' => 'Intermediate and Advanced courses MUST have a Prerequisite course selected.'
+                    'error' => '⚠️ Intermediate and Advanced courses MUST have a Prerequisite course selected.'
+                ]);
+                return;
+            }
+            if ($data['reserved_seats'] > $data['max_capacity']) {
+                $courses = $this->courseModel->getCourseList();
+                $this->loadView('instructor/create_course', [
+                    'courses' => $courses, 
+                    'error' => '⚠️ Logic Error: Reserved seats cannot be greater than Maximum Capacity!'
                 ]);
                 return;
             }
