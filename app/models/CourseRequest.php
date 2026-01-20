@@ -11,10 +11,24 @@ class CourseRequest {
 
     public function createRequest($learner_id, $course_id) {
         $status = 'pending';
-        $query = "INSERT INTO course_requests (learner_id, course_id, status) VALUES (?, ?, ?)";
-        $stmt = $this->connection->prepare($query);
-        $stmt->bind_param("iis", $learner_id, $course_id, $status);
-        return $stmt->execute();
+
+        $checkQuery = "SELECT id FROM course_requests WHERE learner_id = ? AND course_id = ?";
+        $stmtCheck = $this->connection->prepare($checkQuery);
+        $stmtCheck->bind_param("ii", $learner_id, $course_id);
+        $stmtCheck->execute();
+        $result = $stmtCheck->get_result();
+
+        if ($result->num_rows > 0) {
+            $updateQuery = "UPDATE course_requests SET status = ?, created_at = NOW() WHERE learner_id = ? AND course_id = ?";
+            $stmtUpdate = $this->connection->prepare($updateQuery);
+            $stmtUpdate->bind_param("sii", $status, $learner_id, $course_id);
+            return $stmtUpdate->execute();
+        } else {
+            $insertQuery = "INSERT INTO course_requests (learner_id, course_id, status) VALUES (?, ?, ?)";
+            $stmtInsert = $this->connection->prepare($insertQuery);
+            $stmtInsert->bind_param("iis", $learner_id, $course_id, $status);
+            return $stmtInsert->execute();
+        }
     }
 
     public function hasPendingRequest($learner_id, $course_id) {
