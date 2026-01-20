@@ -27,6 +27,7 @@ try {
         elseif ($action === 'register') $controller->register();
         elseif ($action === 'profile') $controller->profile();
         elseif ($action === 'updateProfile') $controller->updateProfile();
+        elseif ($action === 'deleteAccount') $controller->deleteAccount();
         elseif ($action === 'logout') $controller->logout();
         elseif ($action === 'apiCheckEmail') $controller->apiCheckEmail();
         else $controller->login();

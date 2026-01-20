@@ -169,5 +169,23 @@ class AuthController {
             exit;
         }
     }
+
+    public function deleteAccount() {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: ' . BASE_URL . 'auth/login');
+            exit;
+        }
+        if ($this->userModel->deleteUser($_SESSION['user_id'])) {
+            session_unset();
+            session_destroy();
+            echo "<script>
+                alert('Your account has been successfully deleted.'); 
+                window.location.href='" . BASE_URL . "auth/login';
+            </script>";
+            exit;
+        } else {
+            echo "<script>alert('Error deleting account.'); window.history.back();</script>";
+        }
+    }
 }
 ?>
