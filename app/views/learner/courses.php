@@ -88,7 +88,7 @@
                         return;
                     }
 
-                    // 4. Loop through data (Classic For Loop or forEach)
+                   
                     data.forEach(function(course) {
                         
                         // Parse Numbers
@@ -96,7 +96,7 @@
                         var reserved = parseInt(course.reserved_seats);
                         var taken = parseInt(course.student_count) || 0;
 
-                        // Math Logic
+                      
                         var public_left = max - reserved - taken;
                         var total_left = max - taken;
 
@@ -120,7 +120,7 @@
                             actionHtml = '<button class="btn" style="background:gray; cursor:not-allowed;" disabled>Full</button>';
                         }
 
-                        // Append Row
+                        // Appending
                         var row = '<tr style="border-bottom: 1px solid #eee;">' +
                                     '<td style="padding: 15px; font-weight: 600;">' + course.title + '</td>' +
                                     '<td style="padding: 15px;">' + course.difficulty + '</td>' +
